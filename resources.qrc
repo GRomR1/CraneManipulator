@@ -1,0 +1,41 @@
+<RCC>
+    <qresource prefix="/">
+        <file>pics/power_green.svg</file>
+        <file>pics/power_red.svg</file>
+        <file>simple.qss</file>
+        <file>pics/sound_signal_off.svg</file>
+        <file>pics/sound_signal_on.svg</file>
+        <file>pics/crutches.svg</file>
+        <file>pics/derrick_black.svg</file>
+        <file>pics/derrick_white.svg</file>
+        <file>pics/left_crutch_off.svg</file>
+        <file>pics/left_crutch_on.svg</file>
+        <file>pics/light_off.svg</file>
+        <file>pics/light_on.svg</file>
+        <file>pics/outrigger_black.svg</file>
+        <file>pics/outrigger_white.svg</file>
+        <file>pics/pillar_boom_hook.svg</file>
+        <file>pics/right_crutch_on.svg</file>
+        <file>pics/telescopic_boom_black.svg</file>
+        <file>pics/telescopic_boom_white.svg</file>
+        <file>pics/temperature_high_empty.svg</file>
+        <file>pics/temperature_high_red.svg</file>
+        <file>pics/temperature_normal.svg</file>
+        <file>pics/warning_black.svg</file>
+        <file>pics/warning_normal.svg</file>
+        <file>pics/warning_red.svg</file>
+        <file>pics/speed_high.svg</file>
+        <file>pics/speed_low.svg</file>
+        <file>pics/right_crutch_off.svg</file>
+        <file>pics/hook_black.svg</file>
+        <file>pics/hook_white.svg</file>
+        <file>pics/pillar_black.svg</file>
+        <file>pics/pillar_white.svg</file>
+        <file>pics/down.svg</file>
+        <file>pics/rotate_down.svg</file>
+        <file>pics/rotate_up.svg</file>
+        <file>pics/up.svg</file>
+        <file>pics/back.svg</file>
+        <file>pics/forward.svg</file>
+    </qresource>
+</RCC>

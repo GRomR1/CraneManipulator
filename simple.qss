@@ -1,0 +1,143 @@
+QPushButton#_pushButtonPower {
+    background-color: rgba(255, 0, 0, 15%); /* red */
+    border-width: 2px;
+    border-radius: 10px;
+    border-color: beige;
+    padding: 6px;
+}
+
+QPushButton#_pushButtonLight {
+    background-color: rgba(255, 204, 51, 20%); /* yellow */
+    border-width: 2px;
+    border-radius: 10px;
+    border-color: beige;
+    padding: 6px;
+}
+
+QPushButton#_pushButtonSoundSignal {
+    background-color: rgba(255, 102, 0, 25%); /* orange */
+    border-width: 2px;
+    border-radius: 10px;
+    border-color: beige;
+    padding: 6px;
+}
+
+QPushButton#_pushButtonHookWarning:!checked {
+    background-color: #F5DEB3; /* Wheat */
+    border-width: 2px;
+    border-radius: 10px;
+    border-color: beige;
+    padding: 6px;
+}
+
+QPushButton#_pushButtonHookWarning:checked {
+    background-color: #F5DEB3; /* Wheat */
+    border-width: 2px;
+    border-radius: 10px;
+    border-color: beige;
+    padding: 6px;
+}
+
+QPushButton#_pushButtonTemperatureHigh:!checked {
+    background-color: #F5DEB3;      /* Wheat */
+    border-width: 2px;
+    border-radius: 10px;
+    border-color: beige;
+    padding: 6px;
+}
+
+QPushButton#_pushButtonTemperatureHigh:checked {
+    background-color: #F5DEB3;      /* Wheat */
+    border-width: 2px;
+    border-radius: 10px;
+    border-color: beige;
+    padding: 6px;
+}
+
+QPushButton#_pushButtonSpeed:!checked {
+    background-color: #AFEEEE;      /* Pale Turquoise */
+    border-width: 2px;
+    border-radius: 10px;
+    border-color: beige;
+    padding: 6px;
+}
+
+QPushButton#_pushButtonSpeed:checked {
+    background-color: #87CEEB;      /* Sky Blue */
+    border-width: 2px;
+    border-radius: 10px;
+    border-color: beige;
+    padding: 6px;
+}
+
+
+QLabel#_labelCrutchesOrPillar {
+    color: #A0522D;
+}
+
+/* Опоры */
+QPushButton#_pushButtonCrutchesOrPillar:!checked {
+    background-color: #DEB887;      /* Burly Wood */
+    border-width: 2px;
+    border-radius: 10px;
+    border-color: beige;
+    padding: 6px;
+}
+
+/* Стойка, стрела, лебедка */
+QPushButton#_pushButtonCrutchesOrPillar:checked {
+    background-color: #A6CAF0;      /* Sky Blue */
+    border-width: 2px;
+    border-radius: 10px;
+    border-color: beige;
+    padding: 6px;
+}
+
+/* Описание центральных описательных кнопок-иконок */
+QPushButton {
+    border-style: outset;
+}
+
+QPushButton#_pushButtonDiscovery {
+    background-color: #A6CAF0;      /* Sky Blue */
+    border-width: 2px;
+    border-radius: 10px;
+    border-color: beige;
+    padding: 6px;
+}
+
+/* Описание центральных описательных кнопок-иконок */
+QPushButton#_pushButtonPillarUp:!pressed,
+QPushButton#_pushButtonPillarDown:!pressed,
+QPushButton#_pushButtonDerrickUp:!pressed,
+QPushButton#_pushButtonDerrickDown:!pressed,
+QPushButton#_pushButtonOutriggerUp:!pressed,
+QPushButton#_pushButtonOutriggerDown:!pressed,
+QPushButton#_pushButtonTelBoomUp:!pressed,
+QPushButton#_pushButtonTelBoomDown:!pressed,
+QPushButton#_pushButtonHookUp:!pressed,
+QPushButton#_pushButtonHookDown:!pressed {
+    background-color: #C0DCC0;      /* Medium Green */
+    border-width: 2px;
+    border-radius: 10px;
+    border-color: beige;
+    padding: 6px;
+}
+
+QPushButton#_pushButtonPillarUp:pressed,
+QPushButton#_pushButtonPillarDown:pressed,
+QPushButton#_pushButtonDerrickUp:pressed,
+QPushButton#_pushButtonDerrickDown:pressed,
+QPushButton#_pushButtonOutriggerUp:pressed,
+QPushButton#_pushButtonOutriggerDown:pressed,
+QPushButton#_pushButtonTelBoomUp:pressed,
+QPushButton#_pushButtonTelBoomDown:pressed,
+QPushButton#_pushButtonHookUp:pressed,
+QPushButton#_pushButtonHookDown:pressed {
+    background-color: #7CFC00;      /*  Lawn Green */
+    border-width: 2px;
+    border-radius: 10px;
+    border-color: beige;
+    padding: 6px;
+}
+

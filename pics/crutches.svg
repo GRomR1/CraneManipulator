@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="101.23454"
+   height="40.620827"
+   id="svg3017"
+   version="1.1"
+   inkscape:version="0.48.5 r10040"
+   sodipodi:docname="left_crutch_on.svg">
+  <defs
+     id="defs3019" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="2.8284271"
+     inkscape:cx="74.266867"
+     inkscape:cy="23.086539"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     fit-margin-top="0"
+     fit-margin-left="0"
+     fit-margin-right="0"
+     fit-margin-bottom="0"
+     inkscape:window-width="1024"
+     inkscape:window-height="577"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1" />
+  <metadata
+     id="metadata3022">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     transform="translate(-43.207766,-626.82263)"
+     id="g3059"
+     inkscape:groupmode="layer"
+     inkscape:label="Left Сrutch Off"
+     style="display:none">
+    <rect
+       y="628.26221"
+       x="43.21825"
+       height="4"
+       width="51.208603"
+       id="rect3061"
+       style="fill:#000000" />
+    <polygon
+       transform="matrix(0,-1,1,0,43.207766,660.29583)"
+       id="polygon3063"
+       points="12,4 28,4 28,28 12,28 12,24 8,24 8,32 32,32 32,0 8,0 8,8 12,8 " />
+  </g>
+  <g
+     inkscape:label="Left Сrutch On"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-43.207766,-626.82263)"
+     style="display:inline">
+    <g
+       id="g3370"
+       transform="translate(0,-1.4395752)">
+      <rect
+         y="628.26221"
+         x="43.21825"
+         height="4"
+         width="51.208603"
+         id="rect3057"
+         style="fill:#000000" />
+      <polygon
+         transform="matrix(0,-1,1,0,43.207766,660.29583)"
+         id="polygon3038"
+         points="12,28 12,24 8,24 8,32 32,32 32,0 8,0 8,8 12,8 12,4 28,4 28,28 " />
+      <rect
+         y="636.32416"
+         x="56.246658"
+         height="32.55883"
+         width="6.0609155"
+         id="rect3053"
+         style="fill:#000000" />
+      <rect
+         y="661.24664"
+         x="46.587074"
+         height="7.6363897"
+         width="25.380083"
+         id="rect3055"
+         style="fill:#000000" />
+    </g>
+    <g
+       id="g3364"
+       transform="translate(-55.875,7.25)">
+      <rect
+         transform="scale(-1,1)"
+         y="619.57263"
+         x="-200.30682"
+         height="4"
+         width="51.208603"
+         id="rect3057-8"
+         style="fill:#000000;display:inline" />
+      <polygon
+         transform="matrix(0,-1,-1,0,200.31731,651.60625)"
+         id="polygon3038-8"
+         points="28,4 28,28 12,28 12,24 8,24 8,32 32,32 32,0 8,0 8,8 12,8 12,4 "
+         style="display:inline" />
+      <rect
+         transform="scale(-1,1)"
+         y="627.63458"
+         x="-187.27841"
+         height="32.55883"
+         width="6.0609155"
+         id="rect3053-2"
+         style="fill:#000000;display:inline" />
+      <rect
+         transform="scale(-1,1)"
+         y="652.55707"
+         x="-196.938"
+         height="7.6363897"
+         width="25.380083"
+         id="rect3055-4"
+         style="fill:#000000;display:inline" />
+    </g>
+  </g>
+</svg>
