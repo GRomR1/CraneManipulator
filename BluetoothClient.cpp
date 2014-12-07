@@ -56,6 +56,21 @@ BluetoothClient::BluetoothClient(QWidget *parent) :
     _ui->_pushButtonTelBoomUp->hide();
     _ui->_pushButtonTelBoomDown->hide();
 
+    _ui->_pushButtonLight->setEnabled(false);
+    _ui->_pushButtonSpeed->setEnabled(false);
+    _ui->_pushButtonSoundSignal->setEnabled(false);
+    _ui->_pushButtonCrutchesOrPillar->setEnabled(false);
+    _ui->_pushButtonPillarUp->setEnabled(false);
+    _ui->_pushButtonPillarDown->setEnabled(false);
+    _ui->_pushButtonDerrickUp->setEnabled(false);
+    _ui->_pushButtonDerrickDown->setEnabled(false);
+    _ui->_pushButtonOutriggerUp->setEnabled(false);
+    _ui->_pushButtonOutriggerDown->setEnabled(false);
+    _ui->_pushButtonTelBoomUp->setEnabled(false);
+    _ui->_pushButtonTelBoomDown->setEnabled(false);
+    _ui->_pushButtonHookUp->setEnabled(false);
+    _ui->_pushButtonHookDown->setEnabled(false);
+
     _timerIdCrutchesAndPillar = startTimer(300);
     _ui->_pushButtonPillarLabel->setIcon(QIcon(":/pics/left_crutch_on.svg"));
     _ui->_pushButtonHookLabel->setIcon(QIcon(":/pics/right_crutch_on.svg"));
@@ -245,11 +260,41 @@ void BluetoothClient::setPowerOn(bool b)
     {
         _ui->_pushButtonPower->setStyleSheet("background-color: rgba(0, 255, 0, 10%);");
         _ui->_pushButtonPower->setIcon(QIcon(":/pics/power_green.svg"));
+
+        _ui->_pushButtonLight->setEnabled(true);
+        _ui->_pushButtonSpeed->setEnabled(true);
+        _ui->_pushButtonSoundSignal->setEnabled(true);
+        _ui->_pushButtonCrutchesOrPillar->setEnabled(true);
+        _ui->_pushButtonPillarUp->setEnabled(true);
+        _ui->_pushButtonPillarDown->setEnabled(true);
+        _ui->_pushButtonDerrickUp->setEnabled(true);
+        _ui->_pushButtonDerrickDown->setEnabled(true);
+        _ui->_pushButtonOutriggerUp->setEnabled(true);
+        _ui->_pushButtonOutriggerDown->setEnabled(true);
+        _ui->_pushButtonTelBoomUp->setEnabled(true);
+        _ui->_pushButtonTelBoomDown->setEnabled(true);
+        _ui->_pushButtonHookUp->setEnabled(true);
+        _ui->_pushButtonHookDown->setEnabled(true);
     }
     else
     {
         _ui->_pushButtonPower->setStyleSheet("background-color: rgba(255, 0, 0, 15%);");
         _ui->_pushButtonPower->setIcon(QIcon(":/pics/power_red.svg"));
+
+        _ui->_pushButtonLight->setEnabled(false);
+        _ui->_pushButtonSpeed->setEnabled(false);
+        _ui->_pushButtonSoundSignal->setEnabled(false);
+        _ui->_pushButtonCrutchesOrPillar->setEnabled(false);
+        _ui->_pushButtonPillarUp->setEnabled(false);
+        _ui->_pushButtonPillarDown->setEnabled(false);
+        _ui->_pushButtonDerrickUp->setEnabled(false);
+        _ui->_pushButtonDerrickDown->setEnabled(false);
+        _ui->_pushButtonOutriggerUp->setEnabled(false);
+        _ui->_pushButtonOutriggerDown->setEnabled(false);
+        _ui->_pushButtonTelBoomUp->setEnabled(false);
+        _ui->_pushButtonTelBoomDown->setEnabled(false);
+        _ui->_pushButtonHookUp->setEnabled(false);
+        _ui->_pushButtonHookDown->setEnabled(false);
     }
 }
 
