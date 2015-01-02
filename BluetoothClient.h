@@ -31,8 +31,12 @@ private slots:
     void disconnected();
     void readError(QBluetoothSocket::SocketError err);
     void readSocket();
+    void writeInSocket(QByteArray &arr);
     void readMessage(Element el, quint8 mes);
     void sendMessage(Element el, quint8 mes);
+
+    //bool isMoveButton(Element el); //является ли данный элемент кнопкой со стрелкой (перемещает ли кран)
+    void moveElement(Element el, quint8 mes);
 
     void setCrutchesLabels();
     void setPillarAndHookLabels();
@@ -72,6 +76,7 @@ private:
     QBluetoothSocket        *_socket;
     QBluetoothUuid           _buuid;
     Mode                     _currentMode;
+    int                      _currentSpeedTimeout;
     int                      _timerIdCrutchesAndPillar;
     int                      _timerIdDerricAndTelBoom;
     int                      _timerIdOutrigger;
@@ -82,6 +87,8 @@ private:
     bool                     _derricOn;
     bool                     _telBoomOn;
     bool                     _outriggerOn;
+
+    QMap<int, SendMessage>   _mapTimerIdMessages;  //хранит id таймеров нажатых кнопок
 };
 
 #endif // BLUETOOTHCLIENT_H

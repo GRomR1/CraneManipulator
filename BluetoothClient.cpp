@@ -6,6 +6,7 @@ BluetoothClient::BluetoothClient(QWidget *parent) :
     QWidget(parent),
     _ui(new Ui::BluetoothClient),
     _currentMode(Crutches),
+    _currentSpeedTimeout(FirstSpeed),
     _crutchOn(true),
     _pillarOn(true),
     _hookOn(true),
@@ -141,6 +142,9 @@ void BluetoothClient::timerEvent(QTimerEvent *event)
         _ui->_labelError->clear();
     }
 
+    int id = event->timerId();
+    if(_mapTimerIdMessages.contains(id))
+        sendMessage(_mapTimerIdMessages.value(id).first, _mapTimerIdMessages.value(id).second);
 }
 
 void BluetoothClient::readError(QBluetoothSocket::SocketError err)
@@ -182,14 +186,12 @@ void BluetoothClient::readError(QBluetoothSocket::SocketError err)
 void BluetoothClient::connected()
 {
     QString label = "Connected to server: " + _socket->peerName();
-//    qDebug()<<label;
     _ui->_labelConnecting->setText("<FONT COLOR = GREEN>"+label+"</FONT>");
 }
 
 void BluetoothClient::disconnected()
 {
     QString label = "Server " + _socket->peerName()+ " disconnected";
-//    qDebug()<<label;
     _ui->_labelConnecting->setText("<FONT COLOR = RED>"+label+"</FONT>");
 }
 
@@ -208,28 +210,83 @@ void BluetoothClient::readSocket()
     readMessage((Element)el, mes );
 }
 
+void BluetoothClient::writeInSocket(QByteArray &arr)
+{
+    qDebug() << arr.toHex();
+#ifndef LOCAL_SIMULATE
+    _socket->write(arrBlock);
+#endif
+}
+
 void BluetoothClient::readMessage(Element el, quint8 mes)
 {
     qDebug() << (quint8)el << mes;
+    switch (el) {
+    case powerStatus:
+        if(mes==0x01)
+            setPowerOn(true);
+        else
+            setPowerOn(false);
+        break;
+    case lightStatus:
+        if(mes==0x01)
+            setLightOn(true);
+        else
+            setLightOn(false);
+        break;
+    case highTemperature:
+        break;
+    case hookWarning:
+        break;
+    default:
+        break;
+    }
 }
 
 void BluetoothClient::sendMessage(Element el, quint8 mes)
 {
     QByteArray  arrBlock;
     QDataStream out(&arrBlock, QIODevice::WriteOnly);
-
     out << quint8(el) << mes;
-    qDebug() << arrBlock.toHex();
-#ifndef LOCAL_SIMULATE
-    _socket->write(arrBlock);
-#endif
+
+    writeInSocket(arrBlock);
 }
 
+
+void BluetoothClient::moveElement(Element el, quint8 mes)
+{
+    if(mes!=0x00) //кнопка была нажата
+    {
+        if(mes==0x01)
+        {
+            sendMessage(el, mes);
+            int id = startTimer(_currentSpeedTimeout);
+            _mapTimerIdMessages.insert(id, std::make_pair(el, mes));
+        }
+        //... if(mes==0x02), if(mes==0x03), etc.
+    }
+    else //if (mes==0x00) //кнопка была отпущена
+    {
+        QMap<int, SendMessage>::const_iterator it = _mapTimerIdMessages.constBegin();
+        while(it!=_mapTimerIdMessages.constEnd())
+        {
+            if(it.value().first==el)
+            {
+                killTimer(it.key());
+                _mapTimerIdMessages.remove(it.key());
+                break;
+            }
+            ++it;
+        }
+    }
+}
 
 void BluetoothClient::setAddress(QBluetoothAddress addr)
 {
 #ifndef LOCAL_SIMULATE
     _socket->connectToService(addr, _buuid);
+#else
+    Q_UNUSED(addr);
 #endif
 }
 
@@ -237,8 +294,36 @@ void BluetoothClient::setAddress(QString addr)
 {
 #ifndef LOCAL_SIMULATE
     _socket->connectToService(QBluetoothAddress(addr), _buuid);
+#else
+    Q_UNUSED(addr);
 #endif
 }
+
+
+//bool BluetoothClient::isMoveButton(Element el)
+//{
+//    switch (el) {
+//    case pillarUp:
+//    case pillarDown:
+//    case derrickUp:
+//    case derrickDown:
+//    case outriggerUp:
+//    case outriggerDown:
+//    case telescopicUp:
+//    case telescopicDown:
+//    case hookUp:
+//    case hookDown:
+//    case leftCrutchUp:
+//    case leftCrutchDown:
+//    case rightCrutchUp:
+//    case rightCrutchDown:
+//        return true;
+//    break;
+//    default:
+//        return false;
+//        break;
+//    }
+//}
 
 void BluetoothClient::on__pushButtonPower_clicked(bool checked)
 {
@@ -345,10 +430,12 @@ void BluetoothClient::on__pushButtonSpeed_clicked(bool checked)
     if(checked)
     {
         sendMessage(speedButton, 0x01);
+        _currentSpeedTimeout = SecondSpeed;
         _ui->_pushButtonSpeed->setIcon(QIcon(":/pics/speed_high.svg"));
     }
     else
     {
+        _currentSpeedTimeout = FirstSpeed;
         sendMessage(speedButton, 0x00);
         _ui->_pushButtonSpeed->setIcon(QIcon(":/pics/speed_low.svg"));
     }
@@ -431,123 +518,125 @@ void BluetoothClient::setPillarAndHookLabels()
 void BluetoothClient::on__pushButtonPillarUp_pressed()
 {
     if(_currentMode==Pillar)
-        sendMessage(pillarUp, 0x01);
+    {
+        moveElement(pillarUp, 0x01);
+    }
     else
-        sendMessage(leftCrutchUp, 0x01);
+        moveElement(leftCrutchUp, 0x01);
 }
 
 void BluetoothClient::on__pushButtonPillarUp_released()
 {
     if(_currentMode==Pillar)
-        sendMessage(pillarUp, 0x00);
+        moveElement(pillarUp, 0x00);
     else
-        sendMessage(leftCrutchUp, 0x00);
+        moveElement(leftCrutchUp, 0x00);
 }
 
 void BluetoothClient::on__pushButtonPillarDown_pressed()
 {
     if(_currentMode==Pillar)
-        sendMessage(pillarDown, 0x01);
+        moveElement(pillarDown, 0x01);
     else
-        sendMessage(leftCrutchDown, 0x01);
+        moveElement(leftCrutchDown, 0x01);
 }
 
 void BluetoothClient::on__pushButtonPillarDown_released()
 {
     if(_currentMode==Pillar)
-        sendMessage(pillarDown, 0x00);
+        moveElement(pillarDown, 0x00);
     else
-        sendMessage(leftCrutchDown, 0x00);
+        moveElement(leftCrutchDown, 0x00);
 }
 
 void BluetoothClient::on__pushButtonHookUp_pressed()
 {
     if(_currentMode==Pillar)
-        sendMessage(hookUp, 0x01);
+        moveElement(hookUp, 0x01);
     else
-        sendMessage(rightCrutchUp, 0x01);
+        moveElement(rightCrutchUp, 0x01);
 }
 
 void BluetoothClient::on__pushButtonHookUp_released()
 {
     if(_currentMode==Pillar)
-        sendMessage(hookUp, 0x00);
+        moveElement(hookUp, 0x00);
     else
-        sendMessage(rightCrutchUp, 0x00);
+        moveElement(rightCrutchUp, 0x00);
 }
 
 void BluetoothClient::on__pushButtonHookDown_pressed()
 {
     if(_currentMode==Pillar)
-        sendMessage(hookDown, 0x01);
+        moveElement(hookDown, 0x01);
     else
-        sendMessage(rightCrutchDown, 0x01);
+        moveElement(rightCrutchDown, 0x01);
 }
 
 void BluetoothClient::on__pushButtonHookDown_released()
 {
     if(_currentMode==Pillar)
-        sendMessage(hookDown, 0x00);
+        moveElement(hookDown, 0x00);
     else
-        sendMessage(rightCrutchDown, 0x00);
+        moveElement(rightCrutchDown, 0x00);
 }
 
 void BluetoothClient::on__pushButtonDerrickUp_pressed()
 {
-    sendMessage(derrickUp, 0x01);
+    moveElement(derrickUp, 0x01);
 }
 
 void BluetoothClient::on__pushButtonDerrickUp_released()
 {
-    sendMessage(derrickUp, 0x00);
+    moveElement(derrickUp, 0x00);
 }
 
 void BluetoothClient::on__pushButtonDerrickDown_pressed()
 {
-    sendMessage(derrickDown, 0x01);
+    moveElement(derrickDown, 0x01);
 }
 
 void BluetoothClient::on__pushButtonDerrickDown_released()
 {
-    sendMessage(derrickDown, 0x00);
+    moveElement(derrickDown, 0x00);
 }
 
 void BluetoothClient::on__pushButtonOutriggerUp_pressed()
 {
-    sendMessage(outriggerUp, 0x01);
+    moveElement(outriggerUp, 0x01);
 }
 
 void BluetoothClient::on__pushButtonOutriggerUp_released()
 {
-    sendMessage(outriggerUp, 0x00);
+    moveElement(outriggerUp, 0x00);
 }
 
 void BluetoothClient::on__pushButtonOutriggerDown_pressed()
 {
-    sendMessage(outriggerDown, 0x01);
+    moveElement(outriggerDown, 0x01);
 }
 
 void BluetoothClient::on__pushButtonOutriggerDown_released()
 {
-    sendMessage(outriggerDown, 0x00);
+    moveElement(outriggerDown, 0x00);
 }
 
 void BluetoothClient::on__pushButtonTelBoomUp_pressed()
 {
-    sendMessage(telescopicUp, 0x01);
+    moveElement(telescopicUp, 0x01);
 }
 
 void BluetoothClient::on__pushButtonTelBoomUp_released()
 {
-    sendMessage(telescopicUp, 0x00);
+    moveElement(telescopicUp, 0x00);
 }
 
 void BluetoothClient::on__pushButtonTelBoomDown_pressed()
 {
-    sendMessage(telescopicDown, 0x01);
+    moveElement(telescopicDown, 0x01);
 }
 
 void BluetoothClient::on__pushButtonTelBoomDown_released()
 {
-    sendMessage(telescopicDown, 0x00);
+    moveElement(telescopicDown, 0x00);
 }
