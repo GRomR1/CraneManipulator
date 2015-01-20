@@ -43,6 +43,8 @@ private slots:
 
     void setPowerOn(bool b=true);
     void setLightOn(bool b=true);
+    void setHookWarning(bool b=true);
+    void setTemperatureWarning(bool b=true);
 
     void on__pushButtonPower_clicked(bool checked);
     void on__pushButtonSoundSignal_pressed();
@@ -81,12 +83,18 @@ private:
     int                      _timerIdDerricAndTelBoom;
     int                      _timerIdOutrigger;
     int                      _timerIdErrorMessage;
+    int                      _timerIdHookWarning;
+    int                      _timerIdTemperatureWarning;
     bool                     _crutchOn;
     bool                     _pillarOn;
     bool                     _hookOn;
     bool                     _derricOn;
     bool                     _telBoomOn;
     bool                     _outriggerOn;
+    bool                     _hookWarningOn;
+    bool                     _temperatureWarningOn;
+
+    QByteArray              _arr;
 
     QMap<int, SendMessage>   _mapTimerIdMessages;  //хранит id таймеров нажатых кнопок
 };

@@ -7,12 +7,16 @@ BluetoothClient::BluetoothClient(QWidget *parent) :
     _ui(new Ui::BluetoothClient),
     _currentMode(Crutches),
     _currentSpeedTimeout(FirstSpeed),
+    _timerIdHookWarning(0),
+    _timerIdTemperatureWarning(0),
     _crutchOn(true),
     _pillarOn(true),
     _hookOn(true),
     _derricOn(true),
     _telBoomOn(true),
-    _outriggerOn(true)
+    _outriggerOn(true),
+    _hookWarningOn(true),
+    _temperatureWarningOn(true)
 {
     _ui->setupUi(this);
     _ui->_labelConnecting->setText("<FONT COLOR = RED>Not connected.</FONT>");
@@ -141,7 +145,22 @@ void BluetoothClient::timerEvent(QTimerEvent *event)
         killTimer(_timerIdErrorMessage);
         _ui->_labelError->clear();
     }
-
+    if(event->timerId() == _timerIdHookWarning)
+    {
+        if(_hookWarningOn)
+            _ui->_pushButtonHookWarning->setIcon(QIcon(":/pics/warning_red.svg"));
+        else
+            _ui->_pushButtonHookWarning->setIcon(QIcon(":/pics/warning_normal.svg"));
+        _hookWarningOn=!_hookWarningOn;
+    }
+    if(event->timerId() == _timerIdTemperatureWarning)
+    {
+        if(_temperatureWarningOn)
+            _ui->_pushButtonTemperatureHigh->setIcon(QIcon(":/pics/temperature_high_red.svg"));
+        else
+            _ui->_pushButtonTemperatureHigh->setIcon(QIcon(":/pics/temperature_normal.svg"));
+        _temperatureWarningOn=!_temperatureWarningOn;
+    }
     int id = event->timerId();
     if(_mapTimerIdMessages.contains(id))
         sendMessage(_mapTimerIdMessages.value(id).first, _mapTimerIdMessages.value(id).second);
@@ -199,28 +218,61 @@ void BluetoothClient::readSocket()
 {
     if (!_socket)
         return;
+    QByteArray arr = _socket->readAll();
+    if(QByteArray(_arr+arr).size()>=2)
+    {
+        while(arr.size()>0)
+        {
+            QByteArray newArr(arr);
+            if(_arr.size()==0)
+            {
+                newArr.truncate(2);
+                _arr=newArr;
+                arr.remove(0,2);
+            }
+            else
+            {   //if(_arr.size()==1)
+                newArr.truncate(1);
+                _arr=_arr+newArr;
+                arr.remove(0,1);
+            }
+            if(_arr.size()>=2)
+            {
+                QDataStream in(&_arr, QIODevice::ReadOnly);
+                quint8 el;
+                quint8 mes;
+                in >> el >> mes;
+//                emit receivedMessage((Element)el, mes);
+                qDebug() << _arr.toHex();
+                readMessage((Element)el, mes);
+                _arr.clear();
+            }
+        }
+    }
+    else
+       _arr+=arr;
 
-    QByteArray arr;
-    arr = _socket->readAll();
-    QDataStream in(&arr, QIODevice::ReadOnly);
-    quint8 el;
-    quint8 mes;
-    in >> el >> mes;
-    qDebug() << arr.toHex();
-    readMessage((Element)el, mes );
+
+//    QByteArray arr;
+//    arr = _socket->readAll();
+//    QDataStream in(&arr, QIODevice::ReadOnly);
+//    quint8 el;
+//    quint8 mes;
+//    in >> el >> mes;
+//    qDebug() << arr.toHex();
+//    readMessage((Element)el, mes );
 }
 
 void BluetoothClient::writeInSocket(QByteArray &arr)
 {
     qDebug() << arr.toHex();
 #ifndef LOCAL_SIMULATE
-    _socket->write(arrBlock);
+    _socket->write(arr);
 #endif
 }
 
 void BluetoothClient::readMessage(Element el, quint8 mes)
 {
-    qDebug() << (quint8)el << mes;
     switch (el) {
     case powerStatus:
         if(mes==0x01)
@@ -235,8 +287,16 @@ void BluetoothClient::readMessage(Element el, quint8 mes)
             setLightOn(false);
         break;
     case highTemperature:
+        if(mes==0x01)
+            setTemperatureWarning(true);
+        else
+            setTemperatureWarning(false);
         break;
     case hookWarning:
+        if(mes==0x01)
+            setHookWarning(true);
+        else
+            setHookWarning(false);
         break;
     default:
         break;
@@ -420,6 +480,35 @@ void BluetoothClient::setLightOn(bool b)
     {
         _ui->_pushButtonLight->setStyleSheet("background-color: rgba(255, 204, 51, 20%)");
         _ui->_pushButtonLight->setIcon(QIcon(":/pics/light_off.svg"));
+    }
+}
+
+
+void BluetoothClient::setHookWarning(bool b)
+{
+    if(b)
+    {
+        _timerIdHookWarning = startTimer(WarningBlinkInterval);
+    }
+    else
+    {
+        killTimer(_timerIdHookWarning);
+        _timerIdHookWarning=0;
+        _ui->_pushButtonHookWarning->setIcon(QIcon(":/pics/warning_normal.svg"));
+    }
+}
+
+void BluetoothClient::setTemperatureWarning(bool b)
+{
+    if(b)
+    {
+        _timerIdTemperatureWarning = startTimer(WarningBlinkInterval);
+    }
+    else
+    {
+        killTimer(_timerIdTemperatureWarning);
+        _timerIdTemperatureWarning=0;
+        _ui->_pushButtonTemperatureHigh->setIcon(QIcon(":/pics/temperature_normal.svg"));
     }
 }
 

@@ -63,7 +63,7 @@ FindDevices::FindDevices(QWidget *parent) :
 //        close();
     }
 
-
+    on__pushButtonDiscovery_clicked();
 }
 
 FindDevices::~FindDevices()

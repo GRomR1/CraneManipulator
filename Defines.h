@@ -2,10 +2,10 @@
 #define DEFINES_H
 
 ///< Включить режим отладки (показывать сразу окно с кнопками)
-#define DEBUG
+//#define DEBUG
 
 ///< Без отправки сигналов в сеть (только для показа интерфейса пульта)
-#define LOCAL_SIMULATE
+//#define LOCAL_SIMULATE
 
 ///< Продолжительность отображения ошибки, мс
 static const int ErrorMessageDuration = 5000;
@@ -15,6 +15,9 @@ static const int FirstSpeed = 200;
 
 ///< Время повторной отправки сигнала нажатия кнопки перемещения элементов крана при 2 скорости, мс
 static const int SecondSpeed = 50;
+
+///< Интервал мигания при возникнование ошибки температуры или лебедки, мс
+static const int WarningBlinkInterval = 400;
 
 ///< Элементы принимающие или посылающие данные в BT-канал
 enum Element
