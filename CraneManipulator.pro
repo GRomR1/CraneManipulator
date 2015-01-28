@@ -19,7 +19,7 @@ SOURCES += main.cpp \
 HEADERS  += \
     BluetoothClient.h \
     FindDevices.h \
-    Defines.h
+    ../Defines.h
 
 CONFIG += mobility
 MOBILITY = 

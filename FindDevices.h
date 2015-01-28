@@ -8,7 +8,7 @@
 #include <qtimer.h>
 #include <qdebug.h>
 #include <qbluetoothsocket.h>
-#include "Defines.h"
+#include "..\Defines.h"
 
 namespace Ui {
 class FindDevices;
@@ -22,6 +22,7 @@ public:
     ~FindDevices();
 signals:
     void addressSelected(QBluetoothAddress);
+    void localDeviceInfoReaded(QString name, QString address);
 
 private slots:
     void on__pushButtonDiscovery_clicked();
@@ -31,12 +32,13 @@ private slots:
     void discoverFinished();
 
 private:
-    Ui::FindDevices *_ui;
-    QBluetoothDeviceDiscoveryAgent *_discoveryAgent;
-    QList<QBluetoothDeviceInfo> _discoveredDevices;
-
-    bool _addProgress;
-    QTimer *_timer;
+    Ui::FindDevices                     *_ui;
+    QBluetoothDeviceDiscoveryAgent      *_discoveryAgent;
+    QList<QBluetoothDeviceInfo>          _discoveredDevices;
+    bool                                 _addProgress;
+    QTimer                              *_timer;
+    QString                              _localName;                     ///< Имя bluetooth-клиента
+    QString                              _localAddress;                  ///< Адрес bluetooth-клиента
 };
 
 #endif // FINDDEVICES_H

@@ -163,7 +163,12 @@ void BluetoothClient::timerEvent(QTimerEvent *event)
     }
     int id = event->timerId();
     if(_mapTimerIdMessages.contains(id))
-        sendMessage(_mapTimerIdMessages.value(id).first, _mapTimerIdMessages.value(id).second);
+    {
+        Element el = _mapTimerIdMessages[id].element;
+        quint8 mes = _mapTimerIdMessages[id].message;
+        sendMessage(el, mes);
+    }
+
 }
 
 void BluetoothClient::readError(QBluetoothSocket::SocketError err)
@@ -206,6 +211,17 @@ void BluetoothClient::connected()
 {
     QString label = "Connected to server: " + _socket->peerName();
     _ui->_labelConnecting->setText("<FONT COLOR = GREEN>"+label+"</FONT>");
+
+    QByteArray  arrBlock;
+    QDataStream out(&arrBlock, QIODevice::WriteOnly);
+    qDebug() << "begin: " << quint64(Preamble);
+    qDebug() << "name: " << _localName;
+    qDebug() << "address: " << _localAddress;
+    qDebug() << "end: " << quint64(Preamble);
+
+    out << quint64(Preamble) << _localName << _localAddress << quint64(Preamble);
+
+    writeInSocket(arrBlock);
 }
 
 void BluetoothClient::disconnected()
@@ -265,7 +281,7 @@ void BluetoothClient::readSocket()
 
 void BluetoothClient::writeInSocket(QByteArray &arr)
 {
-    qDebug() << arr.toHex();
+    qDebug() << arr.toHex() << "[" << arr.size() << "]";
 #ifndef LOCAL_SIMULATE
     _socket->write(arr);
 #endif
@@ -321,16 +337,16 @@ void BluetoothClient::moveElement(Element el, quint8 mes)
         {
             sendMessage(el, mes);
             int id = startTimer(_currentSpeedTimeout);
-            _mapTimerIdMessages.insert(id, std::make_pair(el, mes));
+            _mapTimerIdMessages.insert(id, Message(el, mes));
         }
         //... if(mes==0x02), if(mes==0x03), etc.
     }
     else //if (mes==0x00) //кнопка была отпущена
     {
-        QMap<int, SendMessage>::const_iterator it = _mapTimerIdMessages.constBegin();
+        QMap<int, Message>::const_iterator it = _mapTimerIdMessages.constBegin();
         while(it!=_mapTimerIdMessages.constEnd())
         {
-            if(it.value().first==el)
+            if(it.value().element==el)
             {
                 killTimer(it.key());
                 _mapTimerIdMessages.remove(it.key());
@@ -359,31 +375,11 @@ void BluetoothClient::setAddress(QString addr)
 #endif
 }
 
-
-//bool BluetoothClient::isMoveButton(Element el)
-//{
-//    switch (el) {
-//    case pillarUp:
-//    case pillarDown:
-//    case derrickUp:
-//    case derrickDown:
-//    case outriggerUp:
-//    case outriggerDown:
-//    case telescopicUp:
-//    case telescopicDown:
-//    case hookUp:
-//    case hookDown:
-//    case leftCrutchUp:
-//    case leftCrutchDown:
-//    case rightCrutchUp:
-//    case rightCrutchDown:
-//        return true;
-//    break;
-//    default:
-//        return false;
-//        break;
-//    }
-//}
+void BluetoothClient::setLocalNameAndAddress(QString name, QString addr)
+{
+    _localName = name;
+    _localAddress = addr;
+}
 
 void BluetoothClient::on__pushButtonPower_clicked(bool checked)
 {
@@ -394,7 +390,7 @@ void BluetoothClient::on__pushButtonPower_clicked(bool checked)
     else
         sendMessage(powerButton, 0x00);
 
-#ifdef DEBUG
+#ifdef LOCAL_SIMULATE
     setPowerOn(checked); // установить переключатель не дожидаясь ответа от КМУ
 #endif
 }
@@ -464,7 +460,7 @@ void BluetoothClient::on__pushButtonLight_clicked(bool checked)
     else
         sendMessage(lightButton, 0x00);
 
-#ifdef DEBUG
+#ifdef LOCAL_SIMULATE
     setLightOn(checked); // установить переключатель недожидаясь ответа от КМУ
 #endif
 }

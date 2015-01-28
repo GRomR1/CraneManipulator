@@ -5,7 +5,7 @@
 #include <qbluetoothserviceinfo.h>
 #include <qbluetoothsocket.h>
 #include <QDebug>
-#include "Defines.h"
+#include "../Defines.h"
 
 namespace Ui {
 class BluetoothClient;
@@ -25,6 +25,7 @@ protected:
 public slots:
     void setAddress(QBluetoothAddress addr);
     void setAddress(QString addr);
+    void setLocalNameAndAddress(QString name, QString addr);
 
 private slots:
     void connected();
@@ -35,7 +36,8 @@ private slots:
     void readMessage(Element el, quint8 mes);
     void sendMessage(Element el, quint8 mes);
 
-    //bool isMoveButton(Element el); //является ли данный элемент кнопкой со стрелкой (перемещает ли кран)
+    /** @brief Обработка нажатия у элементов, которые перемещают  кран (кнопки со стрелками)
+     */
     void moveElement(Element el, quint8 mes);
 
     void setCrutchesLabels();
@@ -94,9 +96,11 @@ private:
     bool                     _hookWarningOn;
     bool                     _temperatureWarningOn;
 
-    QByteArray              _arr;
+    QByteArray               _arr;                           ///< Хранит текущие принятые данные (2 байта)
+    QMap<int, Message>       _mapTimerIdMessages;            ///< Хранит id таймеров нажатых кнопок
+    QString                  _localName;                     ///< Имя bluetooth-клиента
+    QString                  _localAddress;                  ///< Адрес bluetooth-клиента
 
-    QMap<int, SendMessage>   _mapTimerIdMessages;  //хранит id таймеров нажатых кнопок
 };
 
 #endif // BLUETOOTHCLIENT_H

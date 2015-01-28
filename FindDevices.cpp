@@ -34,8 +34,11 @@ FindDevices::FindDevices(QWidget *parent) :
         localDevice.powerOn();
 
         // Read local device name
-        _ui->_labelMyInfo->setText("My bluetooth name: "+localDevice.name()+"\n"
-                                  +"My address: "+localDevice.address().toString());
+        _localName = localDevice.name();
+        _localAddress = localDevice.address().toString();
+        _ui->_labelMyInfo->setText("My bluetooth name: "+_localName+"\n"
+                                  +"My address: "+_localAddress);
+        //emit localDeviceInfoReaded(localDevice.name(), localDevice.address().toString());
 
         /*
 //        Make it visible to others
@@ -140,6 +143,7 @@ void FindDevices::itemActivated(QListWidgetItem *item)
 
 //    qDebug() << sName << sAddress;
     emit addressSelected(address);
+    emit localDeviceInfoReaded(_localName, _localAddress);
 }
 
 void FindDevices::deviceDiscovered(const QBluetoothDeviceInfo &device)
