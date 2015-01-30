@@ -214,10 +214,10 @@ void BluetoothClient::connected()
 
     QByteArray  arrBlock;
     QDataStream out(&arrBlock, QIODevice::WriteOnly);
-    qDebug() << "begin: " << quint64(Preamble);
-    qDebug() << "name: " << _localName;
-    qDebug() << "address: " << _localAddress;
-    qDebug() << "end: " << quint64(Preamble);
+//    qDebug() << "begin: " << quint64(Preamble);
+//    qDebug() << "name: " << _localName;
+//    qDebug() << "address: " << _localAddress;
+//    qDebug() << "end: " << quint64(Preamble);
 
     out << quint64(Preamble) << _localName << _localAddress << quint64(Preamble);
 
@@ -259,7 +259,7 @@ void BluetoothClient::readSocket()
                 quint8 mes;
                 in >> el >> mes;
 //                emit receivedMessage((Element)el, mes);
-                qDebug() << _arr.toHex();
+//                qDebug() << _arr.toHex();
                 readMessage((Element)el, mes);
                 _arr.clear();
             }
@@ -281,7 +281,7 @@ void BluetoothClient::readSocket()
 
 void BluetoothClient::writeInSocket(QByteArray &arr)
 {
-    qDebug() << arr.toHex() << "[" << arr.size() << "]";
+    qDebug() << "write: " << arr.toHex() << "[" << arr.size() << "]";
 #ifndef LOCAL_SIMULATE
     _socket->write(arr);
 #endif
@@ -390,9 +390,16 @@ void BluetoothClient::on__pushButtonPower_clicked(bool checked)
     else
         sendMessage(powerButton, 0x00);
 
+    bool b = false;
 #ifdef LOCAL_SIMULATE
-    setPowerOn(checked); // установить переключатель не дожидаясь ответа от КМУ
+    b=true;
 #endif
+#ifdef TURN_IMMEDIATELY
+    b=true;
+#endif
+
+    if(b)
+        setPowerOn(checked); // установить переключатель не дожидаясь ответа от КМУ
 }
 
 void BluetoothClient::setPowerOn(bool b)
@@ -460,9 +467,15 @@ void BluetoothClient::on__pushButtonLight_clicked(bool checked)
     else
         sendMessage(lightButton, 0x00);
 
+    bool b = false;
 #ifdef LOCAL_SIMULATE
-    setLightOn(checked); // установить переключатель недожидаясь ответа от КМУ
+    b=true;
 #endif
+#ifdef TURN_IMMEDIATELY
+    b=true;
+#endif
+    if(b)
+        setLightOn(checked); // установить переключатель не дожидаясь ответа от КМУ
 }
 
 void BluetoothClient::setLightOn(bool b)

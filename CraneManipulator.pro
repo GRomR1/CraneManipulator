@@ -31,3 +31,8 @@ FORMS += \
 RESOURCES += \
     resources.qrc
 
+ANDROID_PACKAGE_SOURCE_DIR = $$PWD/android
+
+OTHER_FILES += \
+    android/AndroidManifest.xml
+
