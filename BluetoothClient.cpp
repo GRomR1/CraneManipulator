@@ -51,30 +51,35 @@ BluetoothClient::BluetoothClient(QWidget *parent) :
     QString strCSS = QLatin1String(file.readAll());
     qApp->setStyleSheet(strCSS);
 
-    _ui->_pushButtonDerrickLabel->hide();
-    _ui->_pushButtonOutriggerLabel->hide();
-    _ui->_pushButtonTelBoomLabel->hide();
+    _ui->_verticalSliderPillar->setAttribute(Qt::WA_AcceptTouchEvents);
+    _ui->_verticalSliderDerrick->setAttribute(Qt::WA_AcceptTouchEvents);
+    _ui->_verticalSliderOutrigger->setAttribute(Qt::WA_AcceptTouchEvents);
+    _ui->_verticalSliderTelBoom->setAttribute(Qt::WA_AcceptTouchEvents);
+    _ui->_verticalSliderHook->setAttribute(Qt::WA_AcceptTouchEvents);
+
+    //скрываем слайдеры или кнопки в зависимости от выбранного режима
+#ifdef SHOW_BUTTONS
+    _ui->_verticalSliderPillar->hide();
+    _ui->_verticalSliderDerrick->hide();
+    _ui->_verticalSliderOutrigger->hide();
+    _ui->_verticalSliderTelBoom->hide();
+    _ui->_verticalSliderHook->hide();
+#else
+    _ui->_pushButtonPillarUp->hide();
+    _ui->_pushButtonPillarDown->hide();
     _ui->_pushButtonDerrickUp->hide();
     _ui->_pushButtonDerrickDown->hide();
     _ui->_pushButtonOutriggerUp->hide();
     _ui->_pushButtonOutriggerDown->hide();
     _ui->_pushButtonTelBoomUp->hide();
     _ui->_pushButtonTelBoomDown->hide();
+    _ui->_pushButtonHookUp->hide();
+    _ui->_pushButtonHookDown->hide();
+#endif
 
-    _ui->_pushButtonLight->setEnabled(false);
-    _ui->_pushButtonSpeed->setEnabled(false);
-    _ui->_pushButtonSoundSignal->setEnabled(false);
-    _ui->_pushButtonCrutchesOrPillar->setEnabled(false);
-    _ui->_pushButtonPillarUp->setEnabled(false);
-    _ui->_pushButtonPillarDown->setEnabled(false);
-    _ui->_pushButtonDerrickUp->setEnabled(false);
-    _ui->_pushButtonDerrickDown->setEnabled(false);
-    _ui->_pushButtonOutriggerUp->setEnabled(false);
-    _ui->_pushButtonOutriggerDown->setEnabled(false);
-    _ui->_pushButtonTelBoomUp->setEnabled(false);
-    _ui->_pushButtonTelBoomDown->setEnabled(false);
-    _ui->_pushButtonHookUp->setEnabled(false);
-    _ui->_pushButtonHookDown->setEnabled(false);
+    hidePillarControls();
+
+    setEnabledControls(false);
 
     _timerIdCrutchesAndPillar = startTimer(300);
     _ui->_pushButtonPillarLabel->setIcon(QIcon(":/pics/left_crutch_on.svg"));
@@ -281,7 +286,13 @@ void BluetoothClient::readSocket()
 
 void BluetoothClient::writeInSocket(QByteArray &arr)
 {
-    qDebug() << "write: " << arr.toHex() << "[" << arr.size() << "]";
+    qDebug() << "write: " <<
+#ifdef LOCAL_SIMULATE
+                "[loc]"
+#else
+                ""
+#endif
+             << arr.toHex() << "[" << arr.size() << "]";
 #ifndef LOCAL_SIMULATE
     _socket->write(arr);
 #endif
@@ -409,40 +420,14 @@ void BluetoothClient::setPowerOn(bool b)
         _ui->_pushButtonPower->setStyleSheet("background-color: rgba(0, 255, 0, 10%);");
         _ui->_pushButtonPower->setIcon(QIcon(":/pics/power_green.svg"));
 
-        _ui->_pushButtonLight->setEnabled(true);
-        _ui->_pushButtonSpeed->setEnabled(true);
-        _ui->_pushButtonSoundSignal->setEnabled(true);
-        _ui->_pushButtonCrutchesOrPillar->setEnabled(true);
-        _ui->_pushButtonPillarUp->setEnabled(true);
-        _ui->_pushButtonPillarDown->setEnabled(true);
-        _ui->_pushButtonDerrickUp->setEnabled(true);
-        _ui->_pushButtonDerrickDown->setEnabled(true);
-        _ui->_pushButtonOutriggerUp->setEnabled(true);
-        _ui->_pushButtonOutriggerDown->setEnabled(true);
-        _ui->_pushButtonTelBoomUp->setEnabled(true);
-        _ui->_pushButtonTelBoomDown->setEnabled(true);
-        _ui->_pushButtonHookUp->setEnabled(true);
-        _ui->_pushButtonHookDown->setEnabled(true);
+        setEnabledControls(true);
     }
     else
     {
         _ui->_pushButtonPower->setStyleSheet("background-color: rgba(255, 0, 0, 15%);");
         _ui->_pushButtonPower->setIcon(QIcon(":/pics/power_red.svg"));
 
-        _ui->_pushButtonLight->setEnabled(false);
-        _ui->_pushButtonSpeed->setEnabled(false);
-        _ui->_pushButtonSoundSignal->setEnabled(false);
-        _ui->_pushButtonCrutchesOrPillar->setEnabled(false);
-        _ui->_pushButtonPillarUp->setEnabled(false);
-        _ui->_pushButtonPillarDown->setEnabled(false);
-        _ui->_pushButtonDerrickUp->setEnabled(false);
-        _ui->_pushButtonDerrickDown->setEnabled(false);
-        _ui->_pushButtonOutriggerUp->setEnabled(false);
-        _ui->_pushButtonOutriggerDown->setEnabled(false);
-        _ui->_pushButtonTelBoomUp->setEnabled(false);
-        _ui->_pushButtonTelBoomDown->setEnabled(false);
-        _ui->_pushButtonHookUp->setEnabled(false);
-        _ui->_pushButtonHookDown->setEnabled(false);
+        setEnabledControls(false);
     }
 }
 
@@ -548,38 +533,14 @@ void BluetoothClient::on__pushButtonCrutchesOrPillar_clicked(bool checked)
         _currentMode = Pillar;
         setPillarAndHookLabels();
         _ui->_labelCrutchesOrPillar->setText("Cтойка, стрела, лебедка");
-        _ui->_pushButtonCrutchesOrPillar->setIcon(QIcon(":/pics/pillar_boom_hook.svg"));
-        _ui->_pushButtonPillarUp->setIcon(QIcon(":/pics/rotate_up.svg"));
-        _ui->_pushButtonPillarDown->setIcon(QIcon(":/pics/rotate_down.svg"));
-
-        _ui->_pushButtonDerrickLabel->setVisible(true);
-        _ui->_pushButtonOutriggerLabel->setVisible(true);
-        _ui->_pushButtonTelBoomLabel->setVisible(true);
-        _ui->_pushButtonDerrickUp->setVisible(true);
-        _ui->_pushButtonDerrickDown->setVisible(true);
-        _ui->_pushButtonOutriggerUp->setVisible(true);
-        _ui->_pushButtonOutriggerDown->setVisible(true);
-        _ui->_pushButtonTelBoomUp->setVisible(true);
-        _ui->_pushButtonTelBoomDown->setVisible(true);
+        showPillarControls();
     }
     else
     {
         _currentMode = Crutches;
         setCrutchesLabels();
         _ui->_labelCrutchesOrPillar->setText("Опоры");
-        _ui->_pushButtonCrutchesOrPillar->setIcon(QIcon(":/pics/crutches.svg"));
-        _ui->_pushButtonPillarUp->setIcon(QIcon(":/pics/up.svg"));
-        _ui->_pushButtonPillarDown->setIcon(QIcon(":/pics/down.svg"));
-
-        _ui->_pushButtonDerrickLabel->hide();
-        _ui->_pushButtonOutriggerLabel->hide();
-        _ui->_pushButtonTelBoomLabel->hide();
-        _ui->_pushButtonDerrickUp->hide();
-        _ui->_pushButtonDerrickDown->hide();
-        _ui->_pushButtonOutriggerUp->hide();
-        _ui->_pushButtonOutriggerDown->hide();
-        _ui->_pushButtonTelBoomUp->hide();
-        _ui->_pushButtonTelBoomDown->hide();
+        hidePillarControls();
     }
 }
 
@@ -611,6 +572,76 @@ void BluetoothClient::setPillarAndHookLabels()
     else
         _ui->_pushButtonHookLabel->setIcon(QIcon(":/pics/hook_white.svg"));
 
+}
+
+void BluetoothClient::showPillarControls()
+{
+    _ui->_pushButtonCrutchesOrPillar->setIcon(QIcon(":/pics/pillar_boom_hook.svg"));
+    _ui->_pushButtonDerrickLabel->setVisible(true);
+    _ui->_pushButtonOutriggerLabel->setVisible(true);
+    _ui->_pushButtonTelBoomLabel->setVisible(true);
+#ifdef SHOW_BUTTONS
+    _ui->_pushButtonPillarUp->setIcon(QIcon(":/pics/rotate_up.svg"));
+    _ui->_pushButtonPillarDown->setIcon(QIcon(":/pics/rotate_down.svg"));
+    _ui->_pushButtonDerrickUp->setVisible(true);
+    _ui->_pushButtonDerrickDown->setVisible(true);
+    _ui->_pushButtonOutriggerUp->setVisible(true);
+    _ui->_pushButtonOutriggerDown->setVisible(true);
+    _ui->_pushButtonTelBoomUp->setVisible(true);
+    _ui->_pushButtonTelBoomDown->setVisible(true);
+#else
+    _ui->_verticalSliderDerrick->setVisible(true);
+    _ui->_verticalSliderOutrigger->setVisible(true);
+    _ui->_verticalSliderTelBoom->setVisible(true);
+#endif
+}
+
+void BluetoothClient::hidePillarControls()
+{
+    _ui->_pushButtonCrutchesOrPillar->setIcon(QIcon(":/pics/crutches.svg"));
+    _ui->_pushButtonDerrickLabel->hide();
+    _ui->_pushButtonOutriggerLabel->hide();
+    _ui->_pushButtonTelBoomLabel->hide();
+#ifdef SHOW_BUTTONS
+    _ui->_pushButtonPillarUp->setIcon(QIcon(":/pics/up.svg"));
+    _ui->_pushButtonPillarDown->setIcon(QIcon(":/pics/down.svg"));
+    _ui->_pushButtonDerrickUp->hide();
+    _ui->_pushButtonDerrickDown->hide();
+    _ui->_pushButtonOutriggerUp->hide();
+    _ui->_pushButtonOutriggerDown->hide();
+    _ui->_pushButtonTelBoomUp->hide();
+    _ui->_pushButtonTelBoomDown->hide();
+#else
+    _ui->_verticalSliderDerrick->hide();
+    _ui->_verticalSliderOutrigger->hide();
+    _ui->_verticalSliderTelBoom->hide();
+#endif
+}
+
+void BluetoothClient::setEnabledControls(bool b)
+{
+    _ui->_pushButtonLight->setEnabled(b);
+    _ui->_pushButtonSpeed->setEnabled(b);
+    _ui->_pushButtonSoundSignal->setEnabled(b);
+    _ui->_pushButtonCrutchesOrPillar->setEnabled(b);
+#ifdef SHOW_BUTTONS
+    _ui->_pushButtonPillarUp->setEnabled(b);
+    _ui->_pushButtonPillarDown->setEnabled(b);
+    _ui->_pushButtonDerrickUp->setEnabled(b);
+    _ui->_pushButtonDerrickDown->setEnabled(b);
+    _ui->_pushButtonOutriggerUp->setEnabled(b);
+    _ui->_pushButtonOutriggerDown->setEnabled(b);
+    _ui->_pushButtonTelBoomUp->setEnabled(b);
+    _ui->_pushButtonTelBoomDown->setEnabled(b);
+    _ui->_pushButtonHookUp->setEnabled(b);
+    _ui->_pushButtonHookDown->setEnabled(b);
+#else
+    _ui->_verticalSliderPillar->setEnabled(b);
+    _ui->_verticalSliderDerrick->setEnabled(b);
+    _ui->_verticalSliderOutrigger->setEnabled(b);
+    _ui->_verticalSliderTelBoom->setEnabled(b);
+    _ui->_verticalSliderHook->setEnabled(b);
+#endif
 }
 
 void BluetoothClient::on__pushButtonPillarUp_pressed()

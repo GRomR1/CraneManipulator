@@ -101,6 +101,14 @@ private:
     QString                  _localName;                     ///< Имя bluetooth-клиента
     QString                  _localAddress;                  ///< Адрес bluetooth-клиента
 
+    /** @brief Показ/скрытие элементов управления стойкой, стрелой, лебедкой
+     */
+    void showPillarControls();
+    void hidePillarControls();
+
+    /** @brief Включение/отключение (true/false) всех кнопок управления краном
+     */
+    void setEnabledControls(bool b);
 };
 
 #endif // BLUETOOTHCLIENT_H

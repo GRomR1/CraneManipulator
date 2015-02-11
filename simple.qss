@@ -1,3 +1,8 @@
+/* Описание центральных описательных кнопок-иконок */
+QPushButton {
+    border-style: outset;
+}
+
 QPushButton#_pushButtonPower {
     background-color: rgba(255, 0, 0, 15%); /* red */
     border-width: 2px;
@@ -70,7 +75,6 @@ QPushButton#_pushButtonSpeed:checked {
     padding: 6px;
 }
 
-
 QLabel#_labelCrutchesOrPillar {
     color: #A0522D;
 }
@@ -93,10 +97,6 @@ QPushButton#_pushButtonCrutchesOrPillar:checked {
     padding: 6px;
 }
 
-/* Описание центральных описательных кнопок-иконок */
-QPushButton {
-    border-style: outset;
-}
 
 QPushButton#_pushButtonDiscovery {
     background-color: #A6CAF0;      /* Sky Blue */
@@ -141,3 +141,34 @@ QPushButton#_pushButtonHookDown:pressed {
     padding: 6px;
 }
 
+/* Слайдеры управления элементами крана */
+QSlider{
+    padding: 60px;
+}
+
+/* Центральная бороздка слайдера (то по чему ездит слайдер) */
+QSlider::groove:vertical {
+    border: 2px outset beige;
+    width: 10px; /* the groove expands to the size of the slider by default. by giving it a height, it has a fixed size */
+    background: pink;
+    margin: 2px 0;
+}
+
+/* Центральный прямоугольник слайдера (то чем управляем) */
+QSlider::handle {
+    border-width: 2px;
+    border-radius: 10px;
+    border-color: beige;
+    height: 120px;
+    margin: -60px; /* расширяется наружу от бороздки */
+}
+
+/* Центральный прямоугольник слайдера (то чем управляем) нажат */
+QSlider::handle:pressed {
+    background: #7CFC00;      /*  Lawn Green */
+}
+
+/* Центральный прямоугольник слайдера (то чем управляем) отжат */
+QSlider::handle:!pressed {
+    background: #C0DCC0;      /* Medium Green */
+}
