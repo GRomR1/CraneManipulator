@@ -52,11 +52,11 @@ BluetoothClient::BluetoothClient(QWidget *parent) :
     QString strCSS = QLatin1String(file.readAll());
     qApp->setStyleSheet(strCSS);
 
-    _ui->_verticalSliderPillar->setAttribute(Qt::WA_AcceptTouchEvents);
-    _ui->_verticalSliderDerrick->setAttribute(Qt::WA_AcceptTouchEvents);
-    _ui->_verticalSliderOutrigger->setAttribute(Qt::WA_AcceptTouchEvents);
-    _ui->_verticalSliderTelBoom->setAttribute(Qt::WA_AcceptTouchEvents);
-    _ui->_verticalSliderHook->setAttribute(Qt::WA_AcceptTouchEvents);
+//    _ui->_verticalSliderPillar->setAttribute(Qt::WA_AcceptTouchEvents);
+//    _ui->_verticalSliderDerrick->setAttribute(Qt::WA_AcceptTouchEvents);
+//    _ui->_verticalSliderOutrigger->setAttribute(Qt::WA_AcceptTouchEvents);
+//    _ui->_verticalSliderTelBoom->setAttribute(Qt::WA_AcceptTouchEvents);
+//    _ui->_verticalSliderHook->setAttribute(Qt::WA_AcceptTouchEvents);
 
     //скрываем слайдеры или кнопки в зависимости от выбранного режима
 #ifdef SHOW_BUTTONS
