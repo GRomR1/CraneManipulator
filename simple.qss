@@ -168,7 +168,12 @@ QSlider::handle:pressed {
     background: #7CFC00;      /*  Lawn Green */
 }
 
-/* Центральный прямоугольник слайдера (то чем управляем) отжат */
+/* Центральный прямоугольник слайдера (то чем управляем) включен отжат */
 QSlider::handle:!pressed {
-    background: #C0DCC0;      /* Medium Green */
+    background: #B1D864;
+}
+
+/* Центральный прямоугольник слайдера (то чем управляем) выключен */
+QSlider::handle:!enabled {
+    background: #C0DCC0;      /*  Medium Green */
 }

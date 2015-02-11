@@ -2,6 +2,7 @@
 #define BLUETOOTHCLIENT_H
 
 #include <QWidget>
+#include <QSlider>
 #include <qbluetoothserviceinfo.h>
 #include <qbluetoothsocket.h>
 #include <QDebug>
@@ -75,6 +76,12 @@ private slots:
     void on__pushButtonTelBoomDown_pressed();
     void on__pushButtonTelBoomDown_released();
 
+    void on__verticalSliderPillar_sliderReleased();
+
+    /** @brief Обработчик сигнала отжатия слайдера (0)
+     */
+    void slotSliderAfterReleased();
+
 private:
     Ui::BluetoothClient     *_ui;
     QBluetoothSocket        *_socket;
@@ -109,6 +116,15 @@ private:
     /** @brief Включение/отключение (true/false) всех кнопок управления краном
      */
     void setEnabledControls(bool b);
+
+    /** @brief Функция измения значения слайдера на заданную величину,
+     *         через итервал IntervalSliderInterval
+     */
+    void addValueToSlider(QSlider *slider, int addValue);
+
+    /** @brief Возвращает слайдер в начальное значение (0)
+     */
+    void backwardSliderAfterReleased(QSlider *slider);
 };
 
 #endif // BLUETOOTHCLIENT_H

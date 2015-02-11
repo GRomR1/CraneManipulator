@@ -1,6 +1,7 @@
 #include "BluetoothClient.h"
 #include "ui_BluetoothClient.h"
 #include <QFile>
+#include <QTime>
 
 BluetoothClient::BluetoothClient(QWidget *parent) :
     QWidget(parent),
@@ -77,9 +78,19 @@ BluetoothClient::BluetoothClient(QWidget *parent) :
     _ui->_pushButtonHookDown->hide();
 #endif
 
-    hidePillarControls();
+    hidePillarControls();       //переключаем в режим "Стойки" (прячем управление Pillar)
+    setEnabledControls(false);  //отключаем "питание" у пульта
 
-    setEnabledControls(false);
+    connect( _ui->_verticalSliderPillar, SIGNAL(sliderReleased()),
+            this, SLOT(slotSliderAfterReleased()) );
+    connect( _ui->_verticalSliderDerrick, SIGNAL(sliderReleased()),
+            this, SLOT(slotSliderAfterReleased()) );
+    connect( _ui->_verticalSliderOutrigger, SIGNAL(sliderReleased()),
+            this, SLOT(slotSliderAfterReleased()) );
+    connect( _ui->_verticalSliderTelBoom, SIGNAL(sliderReleased()),
+            this, SLOT(slotSliderAfterReleased()) );
+    connect( _ui->_verticalSliderHook, SIGNAL(sliderReleased()),
+            this, SLOT(slotSliderAfterReleased()) );
 
     _timerIdCrutchesAndPillar = startTimer(300);
     _ui->_pushButtonPillarLabel->setIcon(QIcon(":/pics/left_crutch_on.svg"));
@@ -768,4 +779,53 @@ void BluetoothClient::on__pushButtonTelBoomDown_pressed()
 void BluetoothClient::on__pushButtonTelBoomDown_released()
 {
     moveElement(telescopicDown, 0x00);
+}
+
+void BluetoothClient::addValueToSlider(QSlider *slider, int addValue)
+{
+    int currentValue = slider->value();
+    QTime time;
+    time.start();
+    for(;time.elapsed() < IntervalSliderInterval;) {
+        qApp->processEvents();
+    }
+    slider->setValue(currentValue + addValue);
+}
+
+
+void BluetoothClient::slotSliderAfterReleased()
+{
+    QSlider *slider = dynamic_cast<QSlider *>(sender());
+    backwardSliderAfterReleased(slider);
+}
+
+void BluetoothClient::backwardSliderAfterReleased(QSlider *slider)
+{
+    int v = slider->value();
+    if(v==0)
+        return;
+    if(v>0)
+    {
+        while(v>=1)
+        {
+            addValueToSlider(slider, -1);
+            v--;
+        }
+        addValueToSlider(slider, 1);
+    }
+    else
+    {
+        while(v<=1)
+        {
+            addValueToSlider(slider, 1);
+            v++;
+        }
+        addValueToSlider(slider, -1);
+        v--;
+    }
+}
+
+void BluetoothClient::on__verticalSliderPillar_sliderReleased()
+{
+
 }
