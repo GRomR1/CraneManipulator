@@ -76,9 +76,15 @@ private slots:
     void on__pushButtonTelBoomDown_pressed();
     void on__pushButtonTelBoomDown_released();
 
-    void on__verticalSliderPillar_sliderReleased();
+    /** @brief Обработчик сигнала нажатия слайдера
+     */
+    void slotSliderAfterPressed();
 
-    /** @brief Обработчик сигнала отжатия слайдера (0)
+    /** @brief Обработчик изменения значения слайдера
+     */
+    void slotSliderAfterValueChanged(int value);
+
+    /** @brief Обработчик сигнала отжатия слайдера (переход в 0)
      */
     void slotSliderAfterReleased();
 
@@ -102,11 +108,14 @@ private:
     bool                     _outriggerOn;
     bool                     _hookWarningOn;
     bool                     _temperatureWarningOn;
+    Message                  _currentMessage;                ///< Последнее посланное сообщение (изменяется после изменения значения слайдера)
 
-    QByteArray               _arr;                           ///< Хранит текущие принятые данные (2 байта)
-    QMap<int, Message>       _mapTimerIdMessages;            ///< Хранит id таймеров нажатых кнопок
+    QByteArray               _arr;                           ///< Текущие принятые данные (2 байта)
+    QMap<int, Message>       _mapTimerIdMessages;            ///< id таймеров нажатых кнопок
     QString                  _localName;                     ///< Имя bluetooth-клиента
     QString                  _localAddress;                  ///< Адрес bluetooth-клиента
+    bool                     _localSliderChanged;            ///< Значение слайдера было изменено внутри программы
+    int                      _timerIdSliderControls;         ///< Служит для обработки долгого удержания слайдера в одном положении
 
     /** @brief Показ/скрытие элементов управления стойкой, стрелой, лебедкой
      */

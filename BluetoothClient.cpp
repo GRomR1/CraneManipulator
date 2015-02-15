@@ -17,7 +17,9 @@ BluetoothClient::BluetoothClient(QWidget *parent) :
     _telBoomOn(true),
     _outriggerOn(true),
     _hookWarningOn(true),
-    _temperatureWarningOn(true)
+    _temperatureWarningOn(true),
+    _localSliderChanged(0),
+    _timerIdSliderControls(0)
 {
     _ui->setupUi(this);
     _ui->_labelConnecting->setText("<FONT COLOR = RED>Not connected.</FONT>");
@@ -81,6 +83,7 @@ BluetoothClient::BluetoothClient(QWidget *parent) :
     hidePillarControls();       //переключаем в режим "Стойки" (прячем управление Pillar)
     setEnabledControls(false);  //отключаем "питание" у пульта
 
+    // соединяем обработчики отпускания слайдера со слайдером
     connect( _ui->_verticalSliderPillar, SIGNAL(sliderReleased()),
             this, SLOT(slotSliderAfterReleased()) );
     connect( _ui->_verticalSliderDerrick, SIGNAL(sliderReleased()),
@@ -91,6 +94,30 @@ BluetoothClient::BluetoothClient(QWidget *parent) :
             this, SLOT(slotSliderAfterReleased()) );
     connect( _ui->_verticalSliderHook, SIGNAL(sliderReleased()),
             this, SLOT(slotSliderAfterReleased()) );
+
+    // соединяем обработчики нажатия слайдера со слайдером
+    connect( _ui->_verticalSliderPillar, SIGNAL(sliderPressed()),
+            this, SLOT(slotSliderAfterPressed()) );
+    connect( _ui->_verticalSliderDerrick, SIGNAL(sliderPressed()),
+            this, SLOT(slotSliderAfterPressed()) );
+    connect( _ui->_verticalSliderOutrigger, SIGNAL(sliderPressed()),
+            this, SLOT(slotSliderAfterPressed()) );
+    connect( _ui->_verticalSliderTelBoom, SIGNAL(sliderPressed()),
+            this, SLOT(slotSliderAfterPressed()) );
+    connect( _ui->_verticalSliderHook, SIGNAL(sliderPressed()),
+            this, SLOT(slotSliderAfterPressed()) );
+
+    // соединяем обработчики изменения значения слайдера со слайдером
+    connect( _ui->_verticalSliderPillar, SIGNAL(valueChanged(int)),
+            this, SLOT(slotSliderAfterValueChanged(int)));
+    connect( _ui->_verticalSliderDerrick, SIGNAL(valueChanged(int)),
+            this, SLOT(slotSliderAfterValueChanged(int)));
+    connect( _ui->_verticalSliderOutrigger, SIGNAL(valueChanged(int)),
+            this, SLOT(slotSliderAfterValueChanged(int)));
+    connect( _ui->_verticalSliderTelBoom, SIGNAL(valueChanged(int)),
+            this, SLOT(slotSliderAfterValueChanged(int)));
+    connect( _ui->_verticalSliderHook, SIGNAL(valueChanged(int)),
+            this, SLOT(slotSliderAfterValueChanged(int)));
 
     _timerIdCrutchesAndPillar = startTimer(300);
     _ui->_pushButtonPillarLabel->setIcon(QIcon(":/pics/left_crutch_on.svg"));
@@ -115,12 +142,14 @@ BluetoothClient::BluetoothClient(QWidget *parent) :
 
 BluetoothClient::~BluetoothClient()
 {
+    delete _socket;
     delete _ui;
 }
 
 void BluetoothClient::timerEvent(QTimerEvent *event)
 {
-    if(event->timerId() == _timerIdCrutchesAndPillar)
+    int id = event->timerId();
+    if(id == _timerIdCrutchesAndPillar)
     {
         if(_currentMode==Crutches)
         {
@@ -134,7 +163,7 @@ void BluetoothClient::timerEvent(QTimerEvent *event)
             _hookOn=!_hookOn;
         }
     }
-    if(event->timerId() == _timerIdDerricAndTelBoom)
+    else if(id == _timerIdDerricAndTelBoom)
     {
         if(_derricOn)
             _ui->_pushButtonDerrickLabel->setIcon(QIcon(":/pics/derrick_black.svg"));
@@ -147,8 +176,7 @@ void BluetoothClient::timerEvent(QTimerEvent *event)
             _ui->_pushButtonTelBoomLabel->setIcon(QIcon(":/pics/telescopic_boom_white.svg"));
         _telBoomOn=!_telBoomOn;
     }
-
-    if(event->timerId() == _timerIdOutrigger)
+    else if(id == _timerIdOutrigger)
     {
         if(_outriggerOn)
             _ui->_pushButtonOutriggerLabel->setIcon(QIcon(":/pics/outrigger_black.svg"));
@@ -156,12 +184,12 @@ void BluetoothClient::timerEvent(QTimerEvent *event)
             _ui->_pushButtonOutriggerLabel->setIcon(QIcon(":/pics/outrigger_white.svg"));
         _outriggerOn=!_outriggerOn;
     }
-    if(event->timerId() == _timerIdErrorMessage)
+    else if(id == _timerIdErrorMessage)
     {
         killTimer(_timerIdErrorMessage);
         _ui->_labelError->clear();
     }
-    if(event->timerId() == _timerIdHookWarning)
+    else if(id == _timerIdHookWarning)
     {
         if(_hookWarningOn)
             _ui->_pushButtonHookWarning->setIcon(QIcon(":/pics/warning_red.svg"));
@@ -169,7 +197,7 @@ void BluetoothClient::timerEvent(QTimerEvent *event)
             _ui->_pushButtonHookWarning->setIcon(QIcon(":/pics/warning_normal.svg"));
         _hookWarningOn=!_hookWarningOn;
     }
-    if(event->timerId() == _timerIdTemperatureWarning)
+    else if(id == _timerIdTemperatureWarning)
     {
         if(_temperatureWarningOn)
             _ui->_pushButtonTemperatureHigh->setIcon(QIcon(":/pics/temperature_high_red.svg"));
@@ -177,11 +205,16 @@ void BluetoothClient::timerEvent(QTimerEvent *event)
             _ui->_pushButtonTemperatureHigh->setIcon(QIcon(":/pics/temperature_normal.svg"));
         _temperatureWarningOn=!_temperatureWarningOn;
     }
-    int id = event->timerId();
-    if(_mapTimerIdMessages.contains(id))
+    else if(_mapTimerIdMessages.contains(id))
     {
         Element el = _mapTimerIdMessages[id].element;
         quint8 mes = _mapTimerIdMessages[id].message;
+        sendMessage(el, mes);
+    }
+    else if(id == _timerIdSliderControls)
+    {
+        Element el = _currentMessage.element;
+        quint8 mes = _currentMessage.message;
         sendMessage(el, mes);
     }
 
@@ -355,16 +388,31 @@ void BluetoothClient::moveElement(Element el, quint8 mes)
 {
     if(mes!=0x00) //кнопка была нажата
     {
+
+#ifdef SHOW_BUTTONS
         if(mes==0x01)
         {
             sendMessage(el, mes);
             int id = startTimer(_currentSpeedTimeout);
             _mapTimerIdMessages.insert(id, Message(el, mes));
         }
+#else
+//        int v = mes;
+//        int newSpeedTimeout = _currentSpeedTimeout - (_currentSpeedTimeout/20)*v;
+//        mes = 0x01;
+//        sendMessage(el, mes);
+//        int id = startTimer(newSpeedTimeout);
+//        _mapTimerIdMessages.insert(id, Message(el, mes));
+        if(_timerIdSliderControls!=0)
+            killTimer(_timerIdSliderControls);
+        sendMessage(el, mes);
+        _timerIdSliderControls = startTimer(_currentSpeedTimeout);
+#endif
         //... if(mes==0x02), if(mes==0x03), etc.
     }
     else //if (mes==0x00) //кнопка была отпущена
     {
+#ifdef SHOW_BUTTONS
         QMap<int, Message>::const_iterator it = _mapTimerIdMessages.constBegin();
         while(it!=_mapTimerIdMessages.constEnd())
         {
@@ -376,6 +424,14 @@ void BluetoothClient::moveElement(Element el, quint8 mes)
             }
             ++it;
         }
+#else
+        if(_timerIdSliderControls!=0)
+        {
+            killTimer(_timerIdSliderControls);
+            _timerIdSliderControls=0;
+        }
+#endif
+
     }
 }
 
@@ -523,14 +579,14 @@ void BluetoothClient::on__pushButtonSpeed_clicked(bool checked)
     //    checked == true - быстро
     if(checked)
     {
-        sendMessage(speedButton, 0x01);
+//        sendMessage(speedButton, 0x01);
         _currentSpeedTimeout = SecondSpeed;
         _ui->_pushButtonSpeed->setIcon(QIcon(":/pics/speed_high.svg"));
     }
     else
     {
         _currentSpeedTimeout = FirstSpeed;
-        sendMessage(speedButton, 0x00);
+//        sendMessage(speedButton, 0x00);
         _ui->_pushButtonSpeed->setIcon(QIcon(":/pics/speed_low.svg"));
     }
 }
@@ -781,22 +837,61 @@ void BluetoothClient::on__pushButtonTelBoomDown_released()
     moveElement(telescopicDown, 0x00);
 }
 
-void BluetoothClient::addValueToSlider(QSlider *slider, int addValue)
+void BluetoothClient::slotSliderAfterPressed()
 {
-    int currentValue = slider->value();
-    QTime time;
-    time.start();
-    for(;time.elapsed() < IntervalSliderInterval;) {
-        qApp->processEvents();
-    }
-    slider->setValue(currentValue + addValue);
+    _localSliderChanged=false;
 }
 
+void BluetoothClient::slotSliderAfterValueChanged(int value)
+{
+    if(_localSliderChanged) //если значение слайдера было изменено из программы (кода)
+        return;
+
+    if(value==0)
+    {
+        moveElement(_currentMessage.element, 0x00);
+        return;
+    }
+
+    QSlider *slider = dynamic_cast<QSlider *>(sender());
+
+    QString nameSlider = slider->objectName();
+    QString nameElement;
+    if(nameSlider.indexOf("Pillar")>=0)
+    {
+        if(_currentMode==Pillar)
+            nameElement="Pillar";
+        else
+            nameElement="leftCrutch";
+    }
+    else if(nameSlider.indexOf("Derrick")>=0)
+        nameElement="Derrick";
+    else if(nameSlider.indexOf("Outrigger")>=0)
+        nameElement="Outrigger";
+    else if(nameSlider.indexOf("TelBoom")>=0)
+        nameElement="TelBoom";
+    else if(nameSlider.indexOf("Hook")>=0)
+    {
+        if(_currentMode==Pillar)
+            nameElement="Hook";
+        else
+            nameElement="rightCrutch";
+    }
+
+    QString suffix = (value>0)? "Up": "Down";
+    nameElement+=suffix;
+    _currentMessage.element = Converting::convertStringToElement(nameElement);
+    _currentMessage.message = qAbs(value);
+//    qDebug() << Converting::convertElementToString(_currentMessage.element) << _currentMessage.message;
+    moveElement(_currentMessage.element, _currentMessage.message);
+}
 
 void BluetoothClient::slotSliderAfterReleased()
 {
+    _localSliderChanged=true;
     QSlider *slider = dynamic_cast<QSlider *>(sender());
     backwardSliderAfterReleased(slider);
+    moveElement(_currentMessage.element, 0x00);
 }
 
 void BluetoothClient::backwardSliderAfterReleased(QSlider *slider)
@@ -806,26 +901,33 @@ void BluetoothClient::backwardSliderAfterReleased(QSlider *slider)
         return;
     if(v>0)
     {
-        while(v>=1)
+        while(v>0)
         {
             addValueToSlider(slider, -1);
             v--;
         }
+        addValueToSlider(slider, -1);
         addValueToSlider(slider, 1);
     }
     else
     {
-        while(v<=1)
+        while(v<0)
         {
             addValueToSlider(slider, 1);
             v++;
         }
+        addValueToSlider(slider, 1);
         addValueToSlider(slider, -1);
-        v--;
     }
 }
 
-void BluetoothClient::on__verticalSliderPillar_sliderReleased()
+void BluetoothClient::addValueToSlider(QSlider *slider, int addValue)
 {
-
+    int currentValue = slider->value();
+    QTime time;
+    time.start();
+    for(;time.elapsed() < IntervalSliderInterval;) {
+        qApp->processEvents();
+    }
+    slider->setValue(currentValue + addValue);
 }
