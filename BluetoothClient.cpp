@@ -38,16 +38,20 @@ BluetoothClient::BluetoothClient(QWidget *parent) :
     _ui->_pushButtonOutriggerLabel->setIconSize(_ui->_pushButtonOutriggerLabel->size()-QSize(10,10));
     _ui->_pushButtonTelBoomLabel->setIconSize(_ui->_pushButtonTelBoomLabel->size()-QSize(10,10));
 
-    _ui->_pushButtonPillarUp->setIconSize(_ui->_pushButtonPillarUp->size()-QSize(80,80));
-    _ui->_pushButtonPillarDown->setIconSize(_ui->_pushButtonPillarDown->size()-QSize(80,80));
-    _ui->_pushButtonDerrickUp->setIconSize(_ui->_pushButtonDerrickUp->size()-QSize(80,80));
-    _ui->_pushButtonDerrickDown->setIconSize(_ui->_pushButtonDerrickDown->size()-QSize(80,80));
-    _ui->_pushButtonOutriggerUp->setIconSize(_ui->_pushButtonOutriggerUp->size()-QSize(80,80));
-    _ui->_pushButtonOutriggerDown->setIconSize(_ui->_pushButtonOutriggerDown->size()-QSize(80,80));
-    _ui->_pushButtonTelBoomUp->setIconSize(_ui->_pushButtonTelBoomUp->size()-QSize(80,80));
-    _ui->_pushButtonTelBoomDown->setIconSize(_ui->_pushButtonTelBoomDown->size()-QSize(80,80));
-    _ui->_pushButtonHookUp->setIconSize(_ui->_pushButtonHookUp->size()-QSize(80,80));
-    _ui->_pushButtonHookDown->setIconSize(_ui->_pushButtonHookDown->size()-QSize(80,80));
+    int minusValue=80;
+#ifdef ANDROID_233
+    minusValue=10;
+#endif
+    _ui->_pushButtonPillarUp->setIconSize(_ui->_pushButtonPillarUp->size()-QSize(minusValue,minusValue));
+    _ui->_pushButtonPillarDown->setIconSize(_ui->_pushButtonPillarDown->size()-QSize(minusValue,minusValue));
+    _ui->_pushButtonDerrickUp->setIconSize(_ui->_pushButtonDerrickUp->size()-QSize(minusValue,minusValue));
+    _ui->_pushButtonDerrickDown->setIconSize(_ui->_pushButtonDerrickDown->size()-QSize(minusValue,minusValue));
+    _ui->_pushButtonOutriggerUp->setIconSize(_ui->_pushButtonOutriggerUp->size()-QSize(minusValue,minusValue));
+    _ui->_pushButtonOutriggerDown->setIconSize(_ui->_pushButtonOutriggerDown->size()-QSize(minusValue,minusValue));
+    _ui->_pushButtonTelBoomUp->setIconSize(_ui->_pushButtonTelBoomUp->size()-QSize(minusValue,minusValue));
+    _ui->_pushButtonTelBoomDown->setIconSize(_ui->_pushButtonTelBoomDown->size()-QSize(minusValue,minusValue));
+    _ui->_pushButtonHookUp->setIconSize(_ui->_pushButtonHookUp->size()-QSize(minusValue,minusValue));
+    _ui->_pushButtonHookDown->setIconSize(_ui->_pushButtonHookDown->size()-QSize(minusValue,minusValue));
 
     QFile file(":/simple.qss");
     file.open(QFile::ReadOnly);
