@@ -20,6 +20,9 @@ public:
     explicit BluetoothClient(QWidget *parent = 0);
     ~BluetoothClient();
 
+signals:
+    void showFindDevices();
+
 protected:
     virtual void timerEvent(QTimerEvent *event);
 
@@ -87,6 +90,8 @@ private slots:
     /** @brief Обработчик сигнала отжатия слайдера (переход в 0)
      */
     void slotSliderAfterReleased();
+
+    void on__pushButtonConnecting_clicked();
 
 private:
     Ui::BluetoothClient     *_ui;

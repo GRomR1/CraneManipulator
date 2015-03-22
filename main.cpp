@@ -12,6 +12,8 @@ int main(int argc, char *argv[])
     QObject::connect(fd, SIGNAL(addressSelected(QBluetoothAddress)), client, SLOT(show()));
     QObject::connect(fd, SIGNAL(addressSelected(QBluetoothAddress)), client, SLOT(setAddress(QBluetoothAddress)));
 
+    QObject::connect(client, SIGNAL(showFindDevices()), fd, SLOT(show()));
+
 #ifdef DEBUG
     client->show();
 #else

@@ -14,6 +14,11 @@ FindDevices::FindDevices(QWidget *parent) :
     QString strCSS = QLatin1String(file.readAll());
     qApp->setStyleSheet(strCSS);
 
+    _ui->_checkBoxSimulate->hide();
+    _ui->_checkBoxRemind->hide();
+    _ui->_radioButtonSetButton->hide();
+    _ui->_radioButtonSetSlider->hide();
+
     QBluetoothLocalDevice localDevice;
 
     _discoveryAgent = new QBluetoothDeviceDiscoveryAgent(this);
@@ -36,8 +41,7 @@ FindDevices::FindDevices(QWidget *parent) :
         // Read local device name
         _localName = localDevice.name();
         _localAddress = localDevice.address().toString();
-        _ui->_labelMyInfo->setText("My bluetooth name: "+_localName+"\n"
-                                  +"My address: "+_localAddress);
+        _ui->_labelMyInfo->setText(trUtf8("О себе: ")+_localName+" ("+_localAddress+")");
         //emit localDeviceInfoReaded(localDevice.name(), localDevice.address().toString());
 
         /*
@@ -58,15 +62,15 @@ FindDevices::FindDevices(QWidget *parent) :
 //        connect(_discoveryAgentService, SIGNAL(finished()), SLOT(finishedDiscoveryService()));
         */
 
+        on__pushButtonDiscovery_clicked();
     }
     else
     {
-        _ui->_labelMyInfo->setText("Bluetooth adapters not found");
+        _ui->_labelMyInfo->setText(trUtf8("Bluetooth модуль не обнаружен"));
         _ui->_pushButtonDiscovery->setEnabled(false);
 //        close();
     }
 
-    on__pushButtonDiscovery_clicked();
 }
 
 FindDevices::~FindDevices()
@@ -76,7 +80,7 @@ FindDevices::~FindDevices()
 
 void FindDevices::on__pushButtonDiscovery_clicked()
 {
-    if(_ui->_pushButtonDiscovery->text()=="Discovery")
+    if(_ui->_pushButtonDiscovery->text()==trUtf8("Поиск"))
     {
         _ui->_progressBar->reset();
         _ui->_listWidgetDevices->clear();
@@ -84,16 +88,16 @@ void FindDevices::on__pushButtonDiscovery_clicked()
         if(_discoveryAgent->isActive())
             _discoveryAgent->stop();
         _discoveryAgent->start();   // Start a discovery
-        _ui->_pushButtonDiscovery->setText("Stop");
+        _ui->_pushButtonDiscovery->setText(trUtf8("Стоп"));
         return;
     }
 
-    if(_ui->_pushButtonDiscovery->text()=="Stop")
+    if(_ui->_pushButtonDiscovery->text()==trUtf8("Стоп"))
     {
         if(_discoveryAgent->isActive())
             _discoveryAgent->stop();
         discoverFinished();
-        _ui->_pushButtonDiscovery->setText("Discovery");
+        _ui->_pushButtonDiscovery->setText(trUtf8("Поиск"));
         return;
     }
 }
@@ -127,14 +131,14 @@ void FindDevices::modifyValueProgressBar()
 void FindDevices::itemActivated(QListWidgetItem *item)
 {
     QString text = item->text();
-    if(text == "Devices not found")
+    if(text == trUtf8("Устройства не обнаружены"))
         return;
     int index = text.indexOf('(');
     if (index == -1)
         return;
 
     if(_discoveryAgent->isActive())
-        _discoveryAgent->stop();
+        discoverFinished();
     QString sName = text;
     sName.remove(index, text.size()-index);
     QString sAddress = text;
@@ -158,8 +162,8 @@ void FindDevices::discoverFinished()
 {
     _ui->_progressBar->setValue(100);
     _timer->stop();
-    _ui->_pushButtonDiscovery->setText("Discovery");
+    _ui->_pushButtonDiscovery->setText(trUtf8("Поиск"));
     _discoveredDevices = _discoveryAgent->discoveredDevices();
     if(_ui->_listWidgetDevices->count()==0)
-        _ui->_listWidgetDevices->addItem("Devices not found");
+        _ui->_listWidgetDevices->addItem(trUtf8("Устройства не обнаружены"));
 }
