@@ -19,11 +19,15 @@ BluetoothClient::BluetoothClient(QWidget *parent) :
     _hookWarningOn(true),
     _temperatureWarningOn(true),
     _localSliderChanged(0),
-    _timerIdSliderControls(0)
+    _timerIdSliderControls(0),
+    _simulation(false),
+    _controls(Sliders)
 {
     _ui->setupUi(this);
-    _ui->_labelConnecting->setText("<FONT COLOR = RED>Not connected.</FONT>");
-    _ui->_labelConnecting->setStyleSheet("color: red");
+//    _ui->_labelConnecting->setText("<FONT COLOR = RED>Not connected.</FONT>");
+//    _ui->_labelConnecting->setStyleSheet("color: red");
+    _ui->_pushButtonConnecting->setStyleSheet("color: red");
+    _ui->_pushButtonConnecting->setText("Not connected");
 
     _ui->_pushButtonPower->setIconSize(_ui->_pushButtonPower->size()-QSize(10,10));
     _ui->_pushButtonLight->setIconSize(_ui->_pushButtonLight->size()-QSize(10,10));
@@ -58,27 +62,30 @@ BluetoothClient::BluetoothClient(QWidget *parent) :
     QString strCSS = QLatin1String(file.readAll());
     qApp->setStyleSheet(strCSS);
 
-    _ui->_pushButtonConnecting->hide();
+    _ui->_labelConnecting->hide();
 
     //скрываем слайдеры или кнопки в зависимости от выбранного режима
-#ifdef SHOW_BUTTONS
-    _ui->_verticalSliderPillar->hide();
-    _ui->_verticalSliderDerrick->hide();
-    _ui->_verticalSliderOutrigger->hide();
-    _ui->_verticalSliderTelBoom->hide();
-    _ui->_verticalSliderHook->hide();
-#else
-    _ui->_pushButtonPillarUp->hide();
-    _ui->_pushButtonPillarDown->hide();
-    _ui->_pushButtonDerrickUp->hide();
-    _ui->_pushButtonDerrickDown->hide();
-    _ui->_pushButtonOutriggerUp->hide();
-    _ui->_pushButtonOutriggerDown->hide();
-    _ui->_pushButtonTelBoomUp->hide();
-    _ui->_pushButtonTelBoomDown->hide();
-    _ui->_pushButtonHookUp->hide();
-    _ui->_pushButtonHookDown->hide();
-#endif
+    if(_controls==Buttons)
+    {
+        _ui->_verticalSliderPillar->hide();
+        _ui->_verticalSliderDerrick->hide();
+        _ui->_verticalSliderOutrigger->hide();
+        _ui->_verticalSliderTelBoom->hide();
+        _ui->_verticalSliderHook->hide();
+    }
+    else
+    {
+        _ui->_pushButtonPillarUp->hide();
+        _ui->_pushButtonPillarDown->hide();
+        _ui->_pushButtonDerrickUp->hide();
+        _ui->_pushButtonDerrickDown->hide();
+        _ui->_pushButtonOutriggerUp->hide();
+        _ui->_pushButtonOutriggerDown->hide();
+        _ui->_pushButtonTelBoomUp->hide();
+        _ui->_pushButtonTelBoomDown->hide();
+        _ui->_pushButtonHookUp->hide();
+        _ui->_pushButtonHookDown->hide();
+    }
 
     hidePillarControls();       //переключаем в режим "Стойки" (прячем управление Pillar)
     setEnabledControls(false);  //отключаем "питание" у пульта
@@ -259,7 +266,9 @@ void BluetoothClient::readError(QBluetoothSocket::SocketError err)
 void BluetoothClient::connected()
 {
     QString label = "Connected to server: " + _socket->peerName();
-    _ui->_labelConnecting->setText("<FONT COLOR = GREEN>"+label+"</FONT>");
+//    _ui->_labelConnecting->setText("<FONT COLOR = GREEN>"+label+"</FONT>");
+    _ui->_pushButtonConnecting->setStyleSheet("color: green");
+    _ui->_pushButtonConnecting->setText(label);
 
     QByteArray  arrBlock;
     QDataStream out(&arrBlock, QIODevice::WriteOnly);
@@ -276,7 +285,9 @@ void BluetoothClient::connected()
 void BluetoothClient::disconnected()
 {
     QString label = "Server " + _socket->peerName()+ " disconnected";
-    _ui->_labelConnecting->setText("<FONT COLOR = RED>"+label+"</FONT>");
+//    _ui->_labelConnecting->setText("<FONT COLOR = RED>"+label+"</FONT>");
+    _ui->_pushButtonConnecting->setStyleSheet("color: red");
+    _ui->_pushButtonConnecting->setText(label);
 }
 
 void BluetoothClient::readSocket()
@@ -330,16 +341,21 @@ void BluetoothClient::readSocket()
 
 void BluetoothClient::writeInSocket(QByteArray &arr)
 {
-    qDebug() << "write: " <<
-#ifdef LOCAL_SIMULATE
-                "[loc]"
-#else
-                ""
-#endif
+    qDebug() << "write: " << (_simulation? "[loc]": "")
              << arr.toHex() << "[" << arr.size() << "]";
-#ifndef LOCAL_SIMULATE
-    _socket->write(arr);
-#endif
+    if(!_simulation)
+        _socket->write(arr);
+
+//    qDebug() << "write: " <<
+//#ifdef LOCAL_SIMULATE
+//                "[loc]"
+//#else
+//                ""
+//#endif
+//             << arr.toHex() << "[" << arr.size() << "]";
+//#ifndef LOCAL_SIMULATE
+//    _socket->write(arr);
+//#endif
 }
 
 void BluetoothClient::readMessage(Element el, quint8 mes)
@@ -388,75 +404,96 @@ void BluetoothClient::moveElement(Element el, quint8 mes)
 {
     if(mes!=0x00) //кнопка была нажата
     {
-
-#ifdef SHOW_BUTTONS
-        if(mes==0x01)
+        if(_controls==Buttons)
         {
-            sendMessage(el, mes);
-            int id = startTimer(_currentSpeedTimeout);
-            _mapTimerIdMessages.insert(id, Message(el, mes));
+            if(mes==0x01)
+            {
+                sendMessage(el, mes);
+                int id = startTimer(_currentSpeedTimeout);
+                _mapTimerIdMessages.insert(id, Message(el, mes));
+            }
         }
-#else
-//        int v = mes;
-//        int newSpeedTimeout = _currentSpeedTimeout - (_currentSpeedTimeout/20)*v;
-//        mes = 0x01;
-//        sendMessage(el, mes);
-//        int id = startTimer(newSpeedTimeout);
-//        _mapTimerIdMessages.insert(id, Message(el, mes));
-        if(_timerIdSliderControls!=0)
-            killTimer(_timerIdSliderControls);
-        sendMessage(el, mes);
-        _timerIdSliderControls = startTimer(_currentSpeedTimeout);
-#endif
+        else
+        {
+            if(_timerIdSliderControls!=0)
+                killTimer(_timerIdSliderControls);
+            sendMessage(el, mes);
+            _timerIdSliderControls = startTimer(_currentSpeedTimeout);
+        }
         //... if(mes==0x02), if(mes==0x03), etc.
     }
     else //if (mes==0x00) //кнопка была отпущена
     {
-#ifdef SHOW_BUTTONS
-        QMap<int, Message>::const_iterator it = _mapTimerIdMessages.constBegin();
-        while(it!=_mapTimerIdMessages.constEnd())
+        if(_controls==Buttons)
         {
-            if(it.value().element==el)
+            QMap<int, Message>::const_iterator it = _mapTimerIdMessages.constBegin();
+            while(it!=_mapTimerIdMessages.constEnd())
             {
-                killTimer(it.key());
-                _mapTimerIdMessages.remove(it.key());
-                break;
+                if(it.value().element==el)
+                {
+                    killTimer(it.key());
+                    _mapTimerIdMessages.remove(it.key());
+                    break;
+                }
+                ++it;
             }
-            ++it;
         }
-#else
-        if(_timerIdSliderControls!=0)
+        else
         {
-            killTimer(_timerIdSliderControls);
-            _timerIdSliderControls=0;
+            if(_timerIdSliderControls!=0)
+            {
+                killTimer(_timerIdSliderControls);
+                _timerIdSliderControls=0;
+            }
         }
-#endif
-
     }
 }
 
 void BluetoothClient::setAddress(QBluetoothAddress addr)
 {
-#ifndef LOCAL_SIMULATE
-    _socket->connectToService(addr, _buuid);
-#else
-    Q_UNUSED(addr);
-#endif
+    if(!_simulation)
+        _socket->connectToService(addr, _buuid);
 }
 
 void BluetoothClient::setAddress(QString addr)
 {
-#ifndef LOCAL_SIMULATE
-    _socket->connectToService(QBluetoothAddress(addr), _buuid);
-#else
-    Q_UNUSED(addr);
-#endif
+    if(!_simulation)
+        _socket->connectToService(QBluetoothAddress(addr), _buuid);
 }
 
 void BluetoothClient::setLocalNameAndAddress(QString name, QString addr)
 {
     _localName = name;
     _localAddress = addr;
+}
+
+void BluetoothClient::setSimulationMode(bool b)
+{
+    _simulation=b;
+//    if(_ui->_pushButtonCrutchesOrPillar->isChecked())
+//        _ui->_pushButtonCrutchesOrPillar->click();
+
+    if(_ui->_pushButtonPower->isChecked())
+        setEnabledControls(true);
+    else
+        setEnabledControls(false);
+
+}
+
+void BluetoothClient::setControls(Controls c)
+{
+    _controls=c;
+    //скрываем слайдеры или кнопки в зависимости от выбранного режима
+    if(_currentMode==Crutches)
+    {
+//        qDebug() << "Crutches";
+        hidePillarControls();
+    }
+    else
+    {
+//        qDebug() << "Pillar";
+        showPillarControls();
+    }
 }
 
 void BluetoothClient::on__pushButtonPower_clicked(bool checked)
@@ -469,9 +506,12 @@ void BluetoothClient::on__pushButtonPower_clicked(bool checked)
         sendMessage(powerButton, 0x00);
 
     bool b = false;
-#ifdef LOCAL_SIMULATE
-    b=true;
-#endif
+    if(_simulation)
+        b=true;
+
+//#ifdef LOCAL_SIMULATE
+//    b=true;
+//#endif
 #ifdef TURN_IMMEDIATELY
     b=true;
 #endif
@@ -520,9 +560,11 @@ void BluetoothClient::on__pushButtonLight_clicked(bool checked)
         sendMessage(lightButton, 0x00);
 
     bool b = false;
-#ifdef LOCAL_SIMULATE
-    b=true;
-#endif
+    if(_simulation)
+        b=true;
+//#ifdef LOCAL_SIMULATE
+//    b=true;
+//#endif
 #ifdef TURN_IMMEDIATELY
     b=true;
 #endif
@@ -647,20 +689,47 @@ void BluetoothClient::showPillarControls()
     _ui->_pushButtonDerrickLabel->setVisible(true);
     _ui->_pushButtonOutriggerLabel->setVisible(true);
     _ui->_pushButtonTelBoomLabel->setVisible(true);
-#ifdef SHOW_BUTTONS
-    _ui->_pushButtonPillarUp->setIcon(QIcon(":/pics/rotate_up.svg"));
-    _ui->_pushButtonPillarDown->setIcon(QIcon(":/pics/rotate_down.svg"));
-    _ui->_pushButtonDerrickUp->setVisible(true);
-    _ui->_pushButtonDerrickDown->setVisible(true);
-    _ui->_pushButtonOutriggerUp->setVisible(true);
-    _ui->_pushButtonOutriggerDown->setVisible(true);
-    _ui->_pushButtonTelBoomUp->setVisible(true);
-    _ui->_pushButtonTelBoomDown->setVisible(true);
-#else
-    _ui->_verticalSliderDerrick->setVisible(true);
-    _ui->_verticalSliderOutrigger->setVisible(true);
-    _ui->_verticalSliderTelBoom->setVisible(true);
-#endif
+    if(_controls==Buttons)
+    {
+        _ui->_verticalSliderPillar->hide();
+        _ui->_verticalSliderDerrick->hide();
+        _ui->_verticalSliderOutrigger->hide();
+        _ui->_verticalSliderTelBoom->hide();
+        _ui->_verticalSliderHook->hide();
+
+        _ui->_pushButtonPillarUp->setIcon(QIcon(":/pics/rotate_up.svg"));
+        _ui->_pushButtonPillarDown->setIcon(QIcon(":/pics/rotate_down.svg"));
+
+        _ui->_pushButtonPillarUp->setVisible(true);
+        _ui->_pushButtonPillarDown->setVisible(true);
+        _ui->_pushButtonDerrickUp->setVisible(true);
+        _ui->_pushButtonDerrickDown->setVisible(true);
+        _ui->_pushButtonOutriggerUp->setVisible(true);
+        _ui->_pushButtonOutriggerDown->setVisible(true);
+        _ui->_pushButtonTelBoomUp->setVisible(true);
+        _ui->_pushButtonTelBoomDown->setVisible(true);
+        _ui->_pushButtonHookUp->setVisible(true);
+        _ui->_pushButtonHookDown->setVisible(true);
+    }
+    else
+    {
+        _ui->_pushButtonPillarUp->hide();
+        _ui->_pushButtonPillarDown->hide();
+        _ui->_pushButtonDerrickUp->hide();
+        _ui->_pushButtonDerrickDown->hide();
+        _ui->_pushButtonOutriggerUp->hide();
+        _ui->_pushButtonOutriggerDown->hide();
+        _ui->_pushButtonTelBoomUp->hide();
+        _ui->_pushButtonTelBoomDown->hide();
+        _ui->_pushButtonHookUp->hide();
+        _ui->_pushButtonHookDown->hide();
+
+        _ui->_verticalSliderPillar->setVisible(true);
+        _ui->_verticalSliderDerrick->setVisible(true);
+        _ui->_verticalSliderOutrigger->setVisible(true);
+        _ui->_verticalSliderTelBoom->setVisible(true);
+        _ui->_verticalSliderHook->setVisible(true);
+    }
 }
 
 void BluetoothClient::hidePillarControls()
@@ -669,20 +738,47 @@ void BluetoothClient::hidePillarControls()
     _ui->_pushButtonDerrickLabel->hide();
     _ui->_pushButtonOutriggerLabel->hide();
     _ui->_pushButtonTelBoomLabel->hide();
-#ifdef SHOW_BUTTONS
-    _ui->_pushButtonPillarUp->setIcon(QIcon(":/pics/up.svg"));
-    _ui->_pushButtonPillarDown->setIcon(QIcon(":/pics/down.svg"));
-    _ui->_pushButtonDerrickUp->hide();
-    _ui->_pushButtonDerrickDown->hide();
-    _ui->_pushButtonOutriggerUp->hide();
-    _ui->_pushButtonOutriggerDown->hide();
-    _ui->_pushButtonTelBoomUp->hide();
-    _ui->_pushButtonTelBoomDown->hide();
-#else
-    _ui->_verticalSliderDerrick->hide();
-    _ui->_verticalSliderOutrigger->hide();
-    _ui->_verticalSliderTelBoom->hide();
-#endif
+    if(_controls==Buttons)
+    {
+        _ui->_verticalSliderPillar->hide();
+        _ui->_verticalSliderDerrick->hide();
+        _ui->_verticalSliderOutrigger->hide();
+        _ui->_verticalSliderTelBoom->hide();
+        _ui->_verticalSliderHook->hide();
+
+        _ui->_pushButtonPillarUp->setIcon(QIcon(":/pics/up.svg"));
+        _ui->_pushButtonPillarDown->setIcon(QIcon(":/pics/down.svg"));
+        _ui->_pushButtonDerrickUp->hide();
+        _ui->_pushButtonDerrickDown->hide();
+        _ui->_pushButtonOutriggerUp->hide();
+        _ui->_pushButtonOutriggerDown->hide();
+        _ui->_pushButtonTelBoomUp->hide();
+        _ui->_pushButtonTelBoomDown->hide();
+
+        _ui->_pushButtonPillarUp->setVisible(true);
+        _ui->_pushButtonPillarDown->setVisible(true);
+        _ui->_pushButtonHookUp->setVisible(true);
+        _ui->_pushButtonHookDown->setVisible(true);
+    }
+    else
+    {
+        _ui->_pushButtonPillarUp->hide();
+        _ui->_pushButtonPillarDown->hide();
+        _ui->_pushButtonDerrickUp->hide();
+        _ui->_pushButtonDerrickDown->hide();
+        _ui->_pushButtonOutriggerUp->hide();
+        _ui->_pushButtonOutriggerDown->hide();
+        _ui->_pushButtonTelBoomUp->hide();
+        _ui->_pushButtonTelBoomDown->hide();
+        _ui->_pushButtonHookUp->hide();
+        _ui->_pushButtonHookDown->hide();
+
+        _ui->_verticalSliderPillar->setVisible(true);
+        _ui->_verticalSliderDerrick->hide();
+        _ui->_verticalSliderOutrigger->hide();
+        _ui->_verticalSliderTelBoom->hide();
+        _ui->_verticalSliderHook->setVisible(true);
+    }
 }
 
 void BluetoothClient::setEnabledControls(bool b)
@@ -691,24 +787,27 @@ void BluetoothClient::setEnabledControls(bool b)
     _ui->_pushButtonSpeed->setEnabled(b);
     _ui->_pushButtonSoundSignal->setEnabled(b);
     _ui->_pushButtonCrutchesOrPillar->setEnabled(b);
-#ifdef SHOW_BUTTONS
-    _ui->_pushButtonPillarUp->setEnabled(b);
-    _ui->_pushButtonPillarDown->setEnabled(b);
-    _ui->_pushButtonDerrickUp->setEnabled(b);
-    _ui->_pushButtonDerrickDown->setEnabled(b);
-    _ui->_pushButtonOutriggerUp->setEnabled(b);
-    _ui->_pushButtonOutriggerDown->setEnabled(b);
-    _ui->_pushButtonTelBoomUp->setEnabled(b);
-    _ui->_pushButtonTelBoomDown->setEnabled(b);
-    _ui->_pushButtonHookUp->setEnabled(b);
-    _ui->_pushButtonHookDown->setEnabled(b);
-#else
-    _ui->_verticalSliderPillar->setEnabled(b);
-    _ui->_verticalSliderDerrick->setEnabled(b);
-    _ui->_verticalSliderOutrigger->setEnabled(b);
-    _ui->_verticalSliderTelBoom->setEnabled(b);
-    _ui->_verticalSliderHook->setEnabled(b);
-#endif
+    if(_controls==Buttons)
+    {
+        _ui->_pushButtonPillarUp->setEnabled(b);
+        _ui->_pushButtonPillarDown->setEnabled(b);
+        _ui->_pushButtonDerrickUp->setEnabled(b);
+        _ui->_pushButtonDerrickDown->setEnabled(b);
+        _ui->_pushButtonOutriggerUp->setEnabled(b);
+        _ui->_pushButtonOutriggerDown->setEnabled(b);
+        _ui->_pushButtonTelBoomUp->setEnabled(b);
+        _ui->_pushButtonTelBoomDown->setEnabled(b);
+        _ui->_pushButtonHookUp->setEnabled(b);
+        _ui->_pushButtonHookDown->setEnabled(b);
+    }
+    else
+    {
+        _ui->_verticalSliderPillar->setEnabled(b);
+        _ui->_verticalSliderDerrick->setEnabled(b);
+        _ui->_verticalSliderOutrigger->setEnabled(b);
+        _ui->_verticalSliderTelBoom->setEnabled(b);
+        _ui->_verticalSliderHook->setEnabled(b);
+    }
 }
 
 void BluetoothClient::on__pushButtonPillarUp_pressed()

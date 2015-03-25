@@ -38,5 +38,7 @@
         <file>pics/back.svg</file>
         <file>pics/forward.svg</file>
         <file>config/ClientOptions.xml</file>
+        <file>config/ClientOptions.ini</file>
+        <file>config/client_options</file>
     </qresource>
 </RCC>

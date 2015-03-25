@@ -5,7 +5,6 @@
 #include <QSlider>
 #include <qbluetoothserviceinfo.h>
 #include <qbluetoothsocket.h>
-#include <QDebug>
 #include "../Defines.h"
 
 namespace Ui {
@@ -30,6 +29,8 @@ public slots:
     void setAddress(QBluetoothAddress addr);
     void setAddress(QString addr);
     void setLocalNameAndAddress(QString name, QString addr);
+    void setSimulationMode(bool b);
+    void setControls(Controls c);
 
 private slots:
     void connected();
@@ -121,6 +122,8 @@ private:
     QString                  _localAddress;                  ///< Адрес bluetooth-клиента
     bool                     _localSliderChanged;            ///< Значение слайдера было изменено внутри программы
     int                      _timerIdSliderControls;         ///< Служит для обработки долгого удержания слайдера в одном положении
+    bool                     _simulation;                    ///< Флаг отвечающий за отправку сигналов к серверу
+    Controls                 _controls;                      ///< Показываем кнопки или слайдеры
 
     /** @brief Показ/скрытие элементов управления стойкой, стрелой, лебедкой
      */

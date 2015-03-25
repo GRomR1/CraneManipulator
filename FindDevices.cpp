@@ -2,10 +2,13 @@
 #include "ui_FindDevices.h"
 #include <QFile>
 
-FindDevices::FindDevices(QWidget *parent) :
+FindDevices::FindDevices(SavedOptionsInterface *options, QWidget *parent) :
     QWidget(parent),
     _ui(new Ui::FindDevices),
-    _addProgress(true)
+    _options(options),
+    _discoveryAgent(0),
+    _addProgress(true),
+    _timer(0)
 {
     _ui->setupUi(this);
 
@@ -14,10 +17,16 @@ FindDevices::FindDevices(QWidget *parent) :
     QString strCSS = QLatin1String(file.readAll());
     qApp->setStyleSheet(strCSS);
 
-    _ui->_checkBoxSimulate->hide();
+//    _ui->_checkBoxSimulate->hide();
     _ui->_checkBoxRemind->hide();
-    _ui->_radioButtonSetButton->hide();
-    _ui->_radioButtonSetSlider->hide();
+//    _ui->_radioButtonSetButton->hide();
+//    _ui->_radioButtonSetSlider->hide();
+    if(_options->isSliders())
+        _ui->_radioButtonSetSlider->setChecked(true);
+    if(_options->keepIsMind())
+        _ui->_checkBoxRemind->setChecked(true);
+    if(_options->simulation())
+        _ui->_checkBoxSimulate->setChecked(true);
 
     QBluetoothLocalDevice localDevice;
 
@@ -67,7 +76,9 @@ FindDevices::FindDevices(QWidget *parent) :
     else
     {
         _ui->_labelMyInfo->setText(trUtf8("Bluetooth модуль не обнаружен"));
-        _ui->_pushButtonDiscovery->setEnabled(false);
+
+        if(!_ui->_checkBoxSimulate->isChecked())
+            _ui->_pushButtonDiscovery->setEnabled(false);
 //        close();
     }
 
@@ -76,6 +87,19 @@ FindDevices::FindDevices(QWidget *parent) :
 FindDevices::~FindDevices()
 {
     delete _ui;
+}
+
+void FindDevices::show()
+{
+    if(_options->isSliders())
+        _ui->_radioButtonSetSlider->setChecked(true);
+    if(_options->isButtons())
+        _ui->_radioButtonSetButton->setChecked(true);
+    if(_options->keepIsMind())
+        _ui->_checkBoxRemind->setChecked(true);
+    if(_options->simulation())
+        _ui->_checkBoxSimulate->setChecked(true);
+    QWidget::show();
 }
 
 void FindDevices::on__pushButtonDiscovery_clicked()
@@ -99,6 +123,24 @@ void FindDevices::on__pushButtonDiscovery_clicked()
         discoverFinished();
         _ui->_pushButtonDiscovery->setText(trUtf8("Поиск"));
         return;
+    }
+    if(_ui->_pushButtonDiscovery->text()==trUtf8("Cимуляция"))
+    {
+        _options->setClientInfo(ClientInfo(_localName, _localAddress));
+        if(_ui->_checkBoxRemind->isChecked())
+            _options->setKeepIsMind(true);
+        else
+            _options->setKeepIsMind(false);
+        if(_ui->_checkBoxSimulate->isChecked())
+            _options->setSimulation(true);
+        else
+            _options->setSimulation(false);
+        if(_ui->_radioButtonSetButton->isChecked())
+            _options->setButtons();
+        else
+            _options->setSliders();
+        emit selectedControls(_options->controls());
+        emit simulationMode(_options->simulation());
     }
 }
 
@@ -146,6 +188,18 @@ void FindDevices::itemActivated(QListWidgetItem *item)
     QBluetoothAddress address(sAddress);
 
 //    qDebug() << sName << sAddress;
+    _options->setServerAddress(sAddress);
+    _options->setClientInfo(ClientInfo(_localName, _localAddress));
+    if(_ui->_checkBoxRemind->isChecked())
+        _options->setKeepIsMind(true);
+    else
+        _options->setKeepIsMind(false);
+
+    if(_ui->_radioButtonSetButton->isChecked())
+        _options->setButtons();
+    else
+        _options->setSliders();
+    emit selectedControls(_options->controls());
     emit addressSelected(address);
     emit localDeviceInfoReaded(_localName, _localAddress);
 }
@@ -161,9 +215,29 @@ void FindDevices::deviceDiscovered(const QBluetoothDeviceInfo &device)
 void FindDevices::discoverFinished()
 {
     _ui->_progressBar->setValue(100);
-    _timer->stop();
+    if(_timer)
+        _timer->stop();
     _ui->_pushButtonDiscovery->setText(trUtf8("Поиск"));
-    _discoveredDevices = _discoveryAgent->discoveredDevices();
+    if(_discoveryAgent)
+        _discoveredDevices = _discoveryAgent->discoveredDevices();
     if(_ui->_listWidgetDevices->count()==0)
         _ui->_listWidgetDevices->addItem(trUtf8("Устройства не обнаружены"));
+}
+
+void FindDevices::on__checkBoxSimulate_stateChanged(int arg1)
+{
+    if(arg1==Qt::Checked)
+    {
+        discoverFinished();
+        _ui->_pushButtonDiscovery->setEnabled(true);
+        _ui->_pushButtonDiscovery->setText(trUtf8("Cимуляция"));
+        _ui->_listWidgetDevices->clear();
+    }
+    else
+    {
+        _ui->_pushButtonDiscovery->setText(trUtf8("Поиск"));
+        if(_ui->_labelMyInfo->text()==trUtf8("Bluetooth модуль не обнаружен"))
+            _ui->_pushButtonDiscovery->setEnabled(false);
+    }
+
 }

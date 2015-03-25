@@ -3,6 +3,10 @@ QPushButton {
     border-style: outset;
 }
 
+QPushButton#_pushButtonConnecting {
+    text-align: right;
+}
+
 QPushButton#_pushButtonPower {
     background-color: rgba(255, 0, 0, 15%); /* red */
     border-width: 2px;
