@@ -203,9 +203,8 @@ void FindDevices::deviceDiscovered(const QBluetoothDeviceInfo &device)
 void FindDevices::discoverFinished()
 {
     _ui->_progressBar->setValue(100);
-    if(!_timer)
-        if(_timer->isActive())
-            _timer->stop();
+    if(_timer->isActive())
+        _timer->stop();
     _ui->_pushButtonDiscovery->setText(trUtf8("Поиск"));
     if(_discoveryAgent)
         _discoveredDevices = _discoveryAgent->discoveredDevices();
@@ -218,9 +217,8 @@ void FindDevices::on__checkBoxSimulate_stateChanged(int arg1)
     if(arg1==Qt::Checked)
     {
         _ui->_progressBar->setValue(100);
-        if(!_timer)
-            if(_timer->isActive())
-                _timer->stop();
+        if(_timer->isActive())
+            _timer->stop();
         if(_discoveryAgent->isActive())
             _discoveryAgent->stop();
         _ui->_pushButtonDiscovery->setEnabled(true);

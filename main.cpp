@@ -42,7 +42,8 @@ int main(int argc, char *argv[])
         client->setLocalNameAndAddress(ci.name, ci.address);
         client->setControls(options->controls());
         client->setSimulationMode(options->simulation());
-        client->setAddress(QBluetoothAddress(options->serverAddress()));
+        if(!options->simulation())
+            client->setAddress(QBluetoothAddress(options->serverAddress()));
         client->show();
     }
     else

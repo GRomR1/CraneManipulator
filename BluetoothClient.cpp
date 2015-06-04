@@ -457,8 +457,9 @@ void BluetoothClient::setAddress(QBluetoothAddress addr)
 
 void BluetoothClient::setAddress(QString addr)
 {
-    if(!_simulation)
+//    if(!_simulation)
         _socket->connectToService(QBluetoothAddress(addr), _buuid);
+    setSimulationMode(false);
 }
 
 void BluetoothClient::setLocalNameAndAddress(QString name, QString addr)
