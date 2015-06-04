@@ -598,7 +598,10 @@ void BluetoothClient::setHookWarning(bool b)
 {
     if(b)
     {
+        if(_timerIdHookWarning!=0)
+            killTimer(_timerIdHookWarning);
         _timerIdHookWarning = startTimer(WarningBlinkInterval);
+        _ui->_pushButtonHookWarning->setIcon(QIcon(":/pics/warning_red.svg"));
     }
     else
     {
@@ -612,7 +615,10 @@ void BluetoothClient::setTemperatureWarning(bool b)
 {
     if(b)
     {
+        if(_timerIdTemperatureWarning!=0)
+            killTimer(_timerIdTemperatureWarning);
         _timerIdTemperatureWarning = startTimer(WarningBlinkInterval);
+        _ui->_pushButtonTemperatureHigh->setIcon(QIcon(":/pics/temperature_high_red.svg"));
     }
     else
     {
