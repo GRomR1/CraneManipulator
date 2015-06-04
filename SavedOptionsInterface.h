@@ -2,12 +2,16 @@
 #define SAVEDOPTIONSINTERFACE_H
 
 #include "../Defines.h"
-#include <QFile>
-#include <QtSql>
-
+#include <QSettings>
 
 #define SHOW_DEBUG
 
+/** \brief Класс для сохранения настроек пульта управления.
+ *
+ *  Содержит в себе следующие настройки: имя и MAC-адрес клиента, MAC-адрес сервера,
+ *  включение режима симуляции (без подключения к серверу и отправки сигналов в сеть),
+ *  выбор управления (кнопки/рычаги(слайдеры))
+ */
 class SavedOptionsInterface
 {
 public:
@@ -30,26 +34,12 @@ public:
     void writeOptions();
 
 private:
-    bool _keepInMind;
-    bool _simulation;
-    QString _serverAddress;
-    ClientInfo _clientInfo;
-    Controls _controls;
-
-    bool createConnection()
-    {
-        QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
-        db.setDatabaseName("client_options");
-
-        db.setUserName("root");
-        db.setHostName("localhost");
-        db.setPassword("password");
-        if (!db.open()) {
-            qDebug() << "Cannot open database:" << db.lastError().text();
-            return false;
-        }
-        return true;
-    }
+    bool        _keepInMind;
+    bool        _simulation;
+    QSettings   _settings;
+    QString     _serverAddress;
+    ClientInfo  _clientInfo;
+    Controls    _controls;
 };
 
 #endif // SAVEDOPTIONSINTERFACE_H

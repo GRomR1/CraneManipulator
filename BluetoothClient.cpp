@@ -472,7 +472,14 @@ void BluetoothClient::setSimulationMode(bool b)
     _simulation=b;
 //    if(_ui->_pushButtonCrutchesOrPillar->isChecked())
 //        _ui->_pushButtonCrutchesOrPillar->click();
-
+    if(_simulation)
+    {
+        if(_socket->state()!=QBluetoothSocket::UnconnectedState)
+            _socket->disconnectFromService();
+        QString label = "Simulation mode";
+        _ui->_pushButtonConnecting->setStyleSheet("color: royalblue");
+        _ui->_pushButtonConnecting->setText(label);
+    }
     if(_ui->_pushButtonPower->isChecked())
         setEnabledControls(true);
     else

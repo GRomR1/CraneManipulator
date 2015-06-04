@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui bluetooth svg sql
+QT       += core gui bluetooth svg
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -18,9 +18,9 @@ SOURCES += main.cpp \
     SavedOptionsInterface.cpp
 
 HEADERS  += \
+    ../Defines.h \
     BluetoothClient.h \
     FindDevices.h \
-    ../Defines.h \
     SavedOptionsInterface.h
 
 CONFIG += mobility
@@ -36,6 +36,5 @@ RESOURCES += \
 ANDROID_PACKAGE_SOURCE_DIR = $$PWD/android
 
 OTHER_FILES += \
-    android/AndroidManifest.xml \
-    config/ClientOptions.ini
+    android/AndroidManifest.xml
 

@@ -18,15 +18,9 @@ FindDevices::FindDevices(SavedOptionsInterface *options, QWidget *parent) :
     qApp->setStyleSheet(strCSS);
 
 //    _ui->_checkBoxSimulate->hide();
-    _ui->_checkBoxRemind->hide();
+//    _ui->_checkBoxRemind->hide();
 //    _ui->_radioButtonSetButton->hide();
 //    _ui->_radioButtonSetSlider->hide();
-    if(_options->isSliders())
-        _ui->_radioButtonSetSlider->setChecked(true);
-    if(_options->keepIsMind())
-        _ui->_checkBoxRemind->setChecked(true);
-    if(_options->simulation())
-        _ui->_checkBoxSimulate->setChecked(true);
 
     QBluetoothLocalDevice localDevice;
 
@@ -51,25 +45,6 @@ FindDevices::FindDevices(SavedOptionsInterface *options, QWidget *parent) :
         _localName = localDevice.name();
         _localAddress = localDevice.address().toString();
         _ui->_labelMyInfo->setText(trUtf8("О себе: ")+_localName+" ("+_localAddress+")");
-        //emit localDeviceInfoReaded(localDevice.name(), localDevice.address().toString());
-
-        /*
-//        Make it visible to others
-//        localDevice.setHostMode(QBluetoothLocalDevice::HostDiscoverable);
-
-        // Get connected devices
-        QList<QBluetoothAddress> remotes;
-        remotes = localDevice.connectedDevices();
-        foreach (QBluetoothAddress addr, remotes) {
-            qDebug()<< "Connected device 0: " <<addr.toString();
-        }
-
-        QBluetoothAddress adapterAddress = localDevice.address();
-        _discoveryAgentService = new QBluetoothServiceDiscoveryAgent(adapterAddress);
-        connect(_discoveryAgentService, SIGNAL(serviceDiscovered(QBluetoothServiceInfo)),
-                SLOT(startClient(QBluetoothServiceInfo)));
-//        connect(_discoveryAgentService, SIGNAL(finished()), SLOT(finishedDiscoveryService()));
-        */
 
         on__pushButtonDiscovery_clicked();
     }
@@ -79,7 +54,6 @@ FindDevices::FindDevices(SavedOptionsInterface *options, QWidget *parent) :
 
         if(!_ui->_checkBoxSimulate->isChecked())
             _ui->_pushButtonDiscovery->setEnabled(false);
-//        close();
     }
 
 }
@@ -93,8 +67,22 @@ void FindDevices::show()
 {
     if(_options->isSliders())
         _ui->_radioButtonSetSlider->setChecked(true);
-    if(_options->isButtons())
+    if(_options->keepIsMind())
+        _ui->_checkBoxRemind->setChecked(true);
+    if(_options->simulation())
+        _ui->_checkBoxSimulate->setChecked(true);
+
+    if(_options->isSliders())
+    {
+        _ui->_radioButtonSetSlider->setChecked(true);
+//        qDebug() << "sliders";
+    }
+    else
+    {
+        //if(_options->isButtons())
         _ui->_radioButtonSetButton->setChecked(true);
+//        qDebug() << "buttons";
+    }
     if(_options->keepIsMind())
         _ui->_checkBoxRemind->setChecked(true);
     if(_options->simulation())
@@ -115,7 +103,6 @@ void FindDevices::on__pushButtonDiscovery_clicked()
         _ui->_pushButtonDiscovery->setText(trUtf8("Стоп"));
         return;
     }
-
     if(_ui->_pushButtonDiscovery->text()==trUtf8("Стоп"))
     {
         if(_discoveryAgent->isActive())
@@ -141,6 +128,7 @@ void FindDevices::on__pushButtonDiscovery_clicked()
             _options->setSliders();
         emit selectedControls(_options->controls());
         emit simulationMode(_options->simulation());
+        return;
     }
 }
 
@@ -215,8 +203,9 @@ void FindDevices::deviceDiscovered(const QBluetoothDeviceInfo &device)
 void FindDevices::discoverFinished()
 {
     _ui->_progressBar->setValue(100);
-    if(_timer)
-        _timer->stop();
+    if(!_timer)
+        if(_timer->isActive())
+            _timer->stop();
     _ui->_pushButtonDiscovery->setText(trUtf8("Поиск"));
     if(_discoveryAgent)
         _discoveredDevices = _discoveryAgent->discoveredDevices();
@@ -228,7 +217,12 @@ void FindDevices::on__checkBoxSimulate_stateChanged(int arg1)
 {
     if(arg1==Qt::Checked)
     {
-        discoverFinished();
+        _ui->_progressBar->setValue(100);
+        if(!_timer)
+            if(_timer->isActive())
+                _timer->stop();
+        if(_discoveryAgent->isActive())
+            _discoveryAgent->stop();
         _ui->_pushButtonDiscovery->setEnabled(true);
         _ui->_pushButtonDiscovery->setText(trUtf8("Cимуляция"));
         _ui->_listWidgetDevices->clear();

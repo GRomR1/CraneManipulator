@@ -11,6 +11,8 @@ namespace Ui {
 class BluetoothClient;
 }
 
+/** \brief Класс для управления КМУ по bluetooth (интерфейс + обработчики)
+ */
 class BluetoothClient : public QWidget
 {
     Q_OBJECT
@@ -20,6 +22,8 @@ public:
     ~BluetoothClient();
 
 signals:
+    /** \brief Сигнал показа окна поиска устройств
+     */
     void showFindDevices();
 
 protected:
@@ -41,7 +45,7 @@ private slots:
     void readMessage(Element el, quint8 mes);
     void sendMessage(Element el, quint8 mes);
 
-    /** @brief Обработка нажатия у элементов, которые перемещают  кран (кнопки со стрелками)
+    /** \brief Обработка нажатия у элементов, которые перемещают  кран (кнопки со стрелками)
      */
     void moveElement(Element el, quint8 mes);
 
@@ -80,18 +84,21 @@ private slots:
     void on__pushButtonTelBoomDown_pressed();
     void on__pushButtonTelBoomDown_released();
 
-    /** @brief Обработчик сигнала нажатия слайдера
+    /** \brief Обработчик сигнала нажатия слайдера
      */
     void slotSliderAfterPressed();
 
-    /** @brief Обработчик изменения значения слайдера
+    /** \brief Обработчик изменения значения слайдера
      */
     void slotSliderAfterValueChanged(int value);
 
-    /** @brief Обработчик сигнала отжатия слайдера (переход в 0)
+    /** \brief Обработчик сигнала отжатия слайдера (переход в 0)
      */
     void slotSliderAfterReleased();
 
+    /** \brief Обработчик нажатия на имя устройства к которому произведено подключение
+     * (красная надпись - правый верхний угол)
+     */
     void on__pushButtonConnecting_clicked();
 
 private:
@@ -125,21 +132,21 @@ private:
     bool                     _simulation;                    ///< Флаг отвечающий за отправку сигналов к серверу
     Controls                 _controls;                      ///< Показываем кнопки или слайдеры
 
-    /** @brief Показ/скрытие элементов управления стойкой, стрелой, лебедкой
+    /** \brief Показ/скрытие элементов управления стойкой, стрелой, лебедкой
      */
     void showPillarControls();
     void hidePillarControls();
 
-    /** @brief Включение/отключение (true/false) всех кнопок управления краном
+    /** \brief Включение/отключение (true/false) всех кнопок управления краном
      */
     void setEnabledControls(bool b);
 
-    /** @brief Функция измения значения слайдера на заданную величину,
+    /** \brief Функция измения значения слайдера на заданную величину,
      *         через итервал IntervalSliderInterval
      */
     void addValueToSlider(QSlider *slider, int addValue);
 
-    /** @brief Возвращает слайдер в начальное значение (0)
+    /** \brief Возвращает слайдер в начальное значение (0)
      */
     void backwardSliderAfterReleased(QSlider *slider);
 };
