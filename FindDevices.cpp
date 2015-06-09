@@ -108,20 +108,18 @@ void FindDevices::on__pushButtonDiscovery_clicked()
     if(_ui->_pushButtonDiscovery->text()==trUtf8("Cимуляция"))
     {
         _options->setClientInfo(ClientInfo(_localName, _localAddress));
-        if(_ui->_checkBoxRemind->isChecked())
-            _options->setKeepIsMind(true);
-        else
-            _options->setKeepIsMind(false);
-        if(_ui->_checkBoxSimulate->isChecked())
-            _options->setSimulation(true);
-        else
-            _options->setSimulation(false);
         if(_ui->_radioButtonSetButton->isChecked())
             _options->setButtons();
         else
             _options->setSliders();
+        if(_ui->_checkBoxRemind->isChecked())
+            _options->setKeepIsMind(true);
+        else
+            _options->setKeepIsMind(false);
+        _options->setSimulation(true);
         emit selectedControls(_options->controls());
-        emit simulationMode(_options->simulation());
+        emit simulationMode(true);
+        emit showBluetoothClient();
         return;
     }
 }
@@ -181,9 +179,11 @@ void FindDevices::itemActivated(QListWidgetItem *item)
         _options->setButtons();
     else
         _options->setSliders();
+    _options->setSimulation(false);
     emit selectedControls(_options->controls());
     emit addressSelected(address);
     emit localDeviceInfoReaded(_localName, _localAddress);
+    emit showBluetoothClient();
 }
 
 void FindDevices::deviceDiscovered(const QBluetoothDeviceInfo &device)

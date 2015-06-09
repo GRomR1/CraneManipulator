@@ -56,8 +56,6 @@ BluetoothClient::BluetoothClient(QWidget *parent) :
     _ui->_pushButtonHookUp->setIconSize(_ui->_pushButtonHookUp->size()-QSize(minusValue,minusValue));
     _ui->_pushButtonHookDown->setIconSize(_ui->_pushButtonHookDown->size()-QSize(minusValue,minusValue));
 
-
-
     _ui->_labelConnecting->hide();
 
     //скрываем слайдеры или кнопки в зависимости от выбранного режима
@@ -145,6 +143,8 @@ BluetoothClient::BluetoothClient(QWidget *parent) :
 
 BluetoothClient::~BluetoothClient()
 {
+    if(_socket->state()!=QBluetoothSocket::UnconnectedState)
+        _socket->disconnectFromService();
     delete _socket;
     delete _ui;
 }
@@ -262,7 +262,6 @@ void BluetoothClient::readError(QBluetoothSocket::SocketError err)
 void BluetoothClient::connected()
 {
     QString label = "Connected to server: " + _socket->peerName();
-//    _ui->_labelConnecting->setText("<FONT COLOR = GREEN>"+label+"</FONT>");
     _ui->_pushButtonConnecting->setStyleSheet("color: green");
     _ui->_pushButtonConnecting->setText(label);
 
@@ -280,8 +279,9 @@ void BluetoothClient::connected()
 
 void BluetoothClient::disconnected()
 {
+    if(_simulation)
+        return;
     QString label = "Server " + _socket->peerName()+ " disconnected";
-//    _ui->_labelConnecting->setText("<FONT COLOR = RED>"+label+"</FONT>");
     _ui->_pushButtonConnecting->setStyleSheet("color: red");
     _ui->_pushButtonConnecting->setText(label);
 }
@@ -339,7 +339,8 @@ void BluetoothClient::writeInSocket(QByteArray &arr)
 {
     qDebug() << "write: " << (_simulation? "[loc]": "")
              << arr.toHex() << "[" << arr.size() << "]";
-    if(!_simulation)
+
+    if(!_simulation && _socket->state() == QBluetoothSocket::ConnectedState)//если мы находимся не в режиме симуляции и подключены к сокету
         _socket->write(arr);
 
 //    qDebug() << "write: " <<
@@ -395,7 +396,6 @@ void BluetoothClient::sendMessage(Element el, quint8 mes)
     writeInSocket(arrBlock);
 }
 
-
 void BluetoothClient::moveElement(Element el, quint8 mes)
 {
     if(mes!=0x00) //кнопка была нажата
@@ -447,15 +447,30 @@ void BluetoothClient::moveElement(Element el, quint8 mes)
 
 void BluetoothClient::setAddress(QBluetoothAddress addr)
 {
-    if(!_simulation)
-        _socket->connectToService(addr, _buuid);
+    setSimulationMode(false);//отключаем режим симуляции, если еще не отключена
+
+    if(_socket->state()!=QBluetoothSocket::UnconnectedState) //если как-то подключены к сокету
+    {
+        if(addr!=_socket->peerAddress()) //и адрес подключенного сокета в данный момент отличается от того к которому хотим подключиться
+        {
+            _socket->disconnectFromService();//отключаемся от него
+            _socket->connectToService(addr, _buuid);//подключаемся к новому
+            showWaitingLabel();
+        }
+    }
+    else
+    {
+        //если отключены от всех сокетов (статус равен UnconnectedState)
+        _socket->connectToService(addr, _buuid);//подключаемся к новому
+        showWaitingLabel();
+    }
 }
 
-void BluetoothClient::setAddress(QString addr)
+void BluetoothClient::showWaitingLabel()
 {
-//    if(!_simulation)
-        _socket->connectToService(QBluetoothAddress(addr), _buuid);
-    setSimulationMode(false);
+    QString label = "Wait...";
+    _ui->_pushButtonConnecting->setStyleSheet("color: darkgoldenrod");
+    _ui->_pushButtonConnecting->setText(label);
 }
 
 void BluetoothClient::setLocalNameAndAddress(QString name, QString addr)
@@ -466,6 +481,8 @@ void BluetoothClient::setLocalNameAndAddress(QString name, QString addr)
 
 void BluetoothClient::setSimulationMode(bool b)
 {
+    if(b==_simulation)
+        return;
     _simulation=b;
 //    if(_ui->_pushButtonCrutchesOrPillar->isChecked())
 //        _ui->_pushButtonCrutchesOrPillar->click();
@@ -476,6 +493,11 @@ void BluetoothClient::setSimulationMode(bool b)
         QString label = "Simulation mode";
         _ui->_pushButtonConnecting->setStyleSheet("color: royalblue");
         _ui->_pushButtonConnecting->setText(label);
+    }
+    else
+    {
+        _ui->_pushButtonConnecting->setStyleSheet("color: red");
+        _ui->_pushButtonConnecting->setText("Not connected");
     }
     if(_ui->_pushButtonPower->isChecked())
         setEnabledControls(true);
@@ -512,16 +534,18 @@ void BluetoothClient::on__pushButtonPower_clicked(bool checked)
     bool b = false;
     if(_simulation)
         b=true;
-
-//#ifdef LOCAL_SIMULATE
-//    b=true;
-//#endif
+    else
+    {
 #ifdef TURN_IMMEDIATELY
-    b=true;
+        if(_socket->state() == QBluetoothSocket::ConnectedState)
+            b=true;
 #endif
+    }
 
     if(b)
         setPowerOn(checked); // установить переключатель не дожидаясь ответа от КМУ
+    else
+        _ui->_pushButtonPower->setChecked(!checked);
 }
 
 void BluetoothClient::setPowerOn(bool b)

@@ -27,6 +27,7 @@ signals:
     void localDeviceInfoReaded(QString name, QString address);
     void selectedControls(Controls controls);
     void simulationMode(bool b); //true - is On
+    void showBluetoothClient();
 
 public slots:
     void show();

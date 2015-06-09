@@ -18,29 +18,24 @@ int main(int argc, char *argv[])
 
     BluetoothClient *client = new BluetoothClient;
     FindDevices *fd = new FindDevices(options);
+
     QObject::connect(fd, SIGNAL(localDeviceInfoReaded(QString,QString)),
                      client, SLOT(setLocalNameAndAddress(QString,QString)));
-
-    QObject::connect(fd, SIGNAL(addressSelected(QBluetoothAddress)),
-                     fd, SLOT(close()));
-    QObject::connect(fd, SIGNAL(addressSelected(QBluetoothAddress)),
-                     client, SLOT(show()));
     QObject::connect(fd, SIGNAL(addressSelected(QBluetoothAddress)),
                      client, SLOT(setAddress(QBluetoothAddress)));
+    QObject::connect(fd, SIGNAL(simulationMode(bool)),
+                     client, SLOT(setSimulationMode(bool)));
+    QObject::connect(fd, SIGNAL(selectedControls(Controls)),
+                     client, SLOT(setControls(Controls)));
 
     QObject::connect(client, SIGNAL(showFindDevices()),
                      fd, SLOT(show()));
     QObject::connect(client, SIGNAL(showFindDevices()),
                      client, SLOT(close()));
-
-    QObject::connect(fd, SIGNAL(simulationMode(bool)),
-                     client, SLOT(setSimulationMode(bool)));
-    QObject::connect(fd, SIGNAL(simulationMode(bool)),
+    QObject::connect(fd, SIGNAL(showBluetoothClient()),
                      client, SLOT(show()));
-    QObject::connect(fd, SIGNAL(simulationMode(bool)),
+    QObject::connect(fd, SIGNAL(showBluetoothClient()),
                      fd, SLOT(close()));
-    QObject::connect(fd, SIGNAL(selectedControls(Controls)),
-                     client, SLOT(setControls(Controls)));
 
     if(options->keepIsMind())
     {

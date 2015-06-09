@@ -31,7 +31,10 @@ protected:
 
 public slots:
     void setAddress(QBluetoothAddress addr);
-    void setAddress(QString addr);
+    inline void setAddress(QString addr)
+    {
+        setAddress(QBluetoothAddress(addr));
+    }
     void setLocalNameAndAddress(QString name, QString addr);
     void setSimulationMode(bool b);
     void setControls(Controls c);
@@ -100,6 +103,9 @@ private slots:
      * (красная надпись - правый верхний угол)
      */
     void on__pushButtonConnecting_clicked();
+
+    void showWaitingLabel();
+
 
 private:
     Ui::BluetoothClient     *_ui;
