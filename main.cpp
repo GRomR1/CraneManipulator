@@ -2,10 +2,16 @@
 #include "BluetoothClient.h"
 #include "FindDevices.h"
 #include "SavedOptionsInterface.h"
+#include <QFile>
 
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
+
+    QFile file(":/simple.qss");
+    file.open(QFile::ReadOnly);
+    qApp->setStyleSheet(QLatin1String(file.readAll()));
+    file.close();
 
     SavedOptionsInterface *options = new SavedOptionsInterface;
     options->readOptions();

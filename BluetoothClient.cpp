@@ -1,6 +1,5 @@
 #include "BluetoothClient.h"
 #include "ui_BluetoothClient.h"
-#include <QFile>
 #include <QTime>
 
 BluetoothClient::BluetoothClient(QWidget *parent) :
@@ -57,10 +56,7 @@ BluetoothClient::BluetoothClient(QWidget *parent) :
     _ui->_pushButtonHookUp->setIconSize(_ui->_pushButtonHookUp->size()-QSize(minusValue,minusValue));
     _ui->_pushButtonHookDown->setIconSize(_ui->_pushButtonHookDown->size()-QSize(minusValue,minusValue));
 
-    QFile file(":/simple.qss");
-    file.open(QFile::ReadOnly);
-    QString strCSS = QLatin1String(file.readAll());
-    qApp->setStyleSheet(strCSS);
+
 
     _ui->_labelConnecting->hide();
 

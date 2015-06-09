@@ -1,6 +1,5 @@
 #include "FindDevices.h"
 #include "ui_FindDevices.h"
-#include <QFile>
 
 FindDevices::FindDevices(SavedOptionsInterface *options, QWidget *parent) :
     QWidget(parent),
@@ -11,11 +10,6 @@ FindDevices::FindDevices(SavedOptionsInterface *options, QWidget *parent) :
     _timer(0)
 {
     _ui->setupUi(this);
-
-    QFile file(":/simple.qss");
-    file.open(QFile::ReadOnly);
-    QString strCSS = QLatin1String(file.readAll());
-    qApp->setStyleSheet(strCSS);
 
 //    _ui->_checkBoxSimulate->hide();
 //    _ui->_checkBoxRemind->hide();
