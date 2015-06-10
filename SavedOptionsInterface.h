@@ -29,6 +29,8 @@ public:
     void setClientInfo(ClientInfo ci);
     QString serverAddress() const;
     void setServerAddress(QString &sa);
+    QString serverName() const;
+    void setServerName(QString &sn);
 
     void readOptions();
     void writeOptions();
@@ -38,6 +40,7 @@ private:
     bool        _simulation;
     QSettings   _settings;
     QString     _serverAddress;
+    QString     _serverName;
     ClientInfo  _clientInfo;
     Controls    _controls;
 };

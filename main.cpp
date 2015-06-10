@@ -21,8 +21,8 @@ int main(int argc, char *argv[])
 
     QObject::connect(fd, SIGNAL(localDeviceInfoReaded(QString,QString)),
                      client, SLOT(setLocalNameAndAddress(QString,QString)));
-    QObject::connect(fd, SIGNAL(addressSelected(QBluetoothAddress)),
-                     client, SLOT(setAddress(QBluetoothAddress)));
+    QObject::connect(fd, SIGNAL(itemSelected(QString,QBluetoothAddress)),
+                     client, SLOT(setAddress(QString,QBluetoothAddress)));
     QObject::connect(fd, SIGNAL(simulationMode(bool)),
                      client, SLOT(setSimulationMode(bool)));
     QObject::connect(fd, SIGNAL(selectedControls(Controls)),
@@ -44,7 +44,10 @@ int main(int argc, char *argv[])
         client->setControls(options->controls());
         client->setSimulationMode(options->simulation());
         if(!options->simulation())
-            client->setAddress(QBluetoothAddress(options->serverAddress()));
+        {
+            client->setAddress(options->serverName(),
+                        QBluetoothAddress(options->serverAddress()));
+        }
         client->show();
     }
     else

@@ -169,6 +169,7 @@ void FindDevices::itemActivated(QListWidgetItem *item)
 
 //    qDebug() << sName << sAddress;
     _options->setServerAddress(sAddress);
+    _options->setServerName(sName);
     _options->setClientInfo(ClientInfo(_localName, _localAddress));
     if(_ui->_checkBoxRemind->isChecked())
         _options->setKeepIsMind(true);
@@ -181,7 +182,7 @@ void FindDevices::itemActivated(QListWidgetItem *item)
         _options->setSliders();
     _options->setSimulation(false);
     emit selectedControls(_options->controls());
-    emit addressSelected(address);
+    emit itemSelected(sName, address);
     emit localDeviceInfoReaded(_localName, _localAddress);
     emit showBluetoothClient();
 }

@@ -23,7 +23,7 @@ public:
     explicit FindDevices(SavedOptionsInterface *options, QWidget *parent = 0);
     ~FindDevices();
 signals:
-    void addressSelected(QBluetoothAddress);
+    void itemSelected(QString serverName, QBluetoothAddress serverAddress);
     void localDeviceInfoReaded(QString name, QString address);
     void selectedControls(Controls controls);
     void simulationMode(bool b); //true - is On

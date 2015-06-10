@@ -13,20 +13,14 @@ void SavedOptionsInterface::readOptions()
 //    _settings.clear();
 //    qDebug() << _settings.allKeys();
 //    qDebug() << _settings.fileName();
-//    _settings.beginGroup("crane_configs");
-//    qDebug() << _settings.allKeys() ;
-//    qDebug() << _settings.value("_controls").toString();
 
-//    qDebug() << "_keepinmind status" << _settings.contains("_keepinmind") ;
     _keepInMind         = _settings.value("_keepinmind", false).toBool();
-//    qDebug() << "_keepinmind = " << _keepInMind;
     _simulation         = _settings.value("_simulation", false).toBool();
     _serverAddress      = _settings.value("_serveraddress", "").toString();
+    _serverName         = _settings.value("_servername", "").toString();
     _clientInfo.name    = _settings.value("_clientname", "").toString();
     _clientInfo.address = _settings.value("_clientaddress", "").toString();
     _controls           = Converting::convertStringToControls(_settings.value("_controls", "Sliders").toString());
-//    qDebug() << "_controls = " << _settings.value("_controls").toString();
-//    qDebug() << "_controls = " << _controls;
 }
 
 void SavedOptionsInterface::writeOptions()
@@ -34,6 +28,7 @@ void SavedOptionsInterface::writeOptions()
     _settings.setValue("_keepinmind", _keepInMind);
     _settings.setValue("_simulation", _simulation);
     _settings.setValue("_serveraddress", _serverAddress);
+    _settings.setValue("_servername", _serverName);
     _settings.setValue("_clientname", _clientInfo.name);
     _settings.setValue("_clientaddress", _clientInfo.address);
     _settings.setValue("_controls", Converting::convertControlsToString(_controls));
@@ -115,5 +110,16 @@ QString SavedOptionsInterface::serverAddress() const
 void SavedOptionsInterface::setServerAddress(QString &sa)
 {
     _serverAddress=sa;
+    writeOptions();
+}
+
+QString SavedOptionsInterface::serverName() const
+{
+
+    return _serverName;
+}
+void SavedOptionsInterface::setServerName(QString &sn)
+{
+    _serverName=sn;
     writeOptions();
 }

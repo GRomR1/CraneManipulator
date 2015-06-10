@@ -52,16 +52,6 @@
        </property>
       </widget>
      </item>
-     <item>
-      <widget class="QLabel" name="_labelConnecting">
-       <property name="text">
-        <string>Not connected.</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignRight|Qt::AlignTop|Qt::AlignTrailing</set>
-       </property>
-      </widget>
-     </item>
     </layout>
    </item>
    <item>

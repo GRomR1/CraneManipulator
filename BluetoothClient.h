@@ -30,10 +30,10 @@ protected:
     virtual void timerEvent(QTimerEvent *event);
 
 public slots:
-    void setAddress(QBluetoothAddress addr);
+    void setAddress(QString sName, QBluetoothAddress addr);
     inline void setAddress(QString addr)
     {
-        setAddress(QBluetoothAddress(addr));
+        setAddress(addr, QBluetoothAddress(addr));
     }
     void setLocalNameAndAddress(QString name, QString addr);
     void setSimulationMode(bool b);
@@ -92,6 +92,7 @@ private slots:
     void slotSliderAfterPressed();
 
     /** \brief Обработчик изменения значения слайдера
+     *  \param[in]  value   Новое значение слайдера
      */
     void slotSliderAfterValueChanged(int value);
 
@@ -104,8 +105,27 @@ private slots:
      */
     void on__pushButtonConnecting_clicked();
 
-    void showWaitingLabel();
+    /** \brief Показ надписи с ожиданием при подключении к серверу sName
+     *  \param[in]  sName   Имя сервера, к которому собираемся подключиться
+     */
+    void showWaitingLabel(const QString &sName);
 
+    /** \brief Показ надписи при успешном подключении к серверу sName
+     *  \param[in]  sName   Имя сервера, к которому удалось подключиться
+     */
+    void showConnectedLabel(const QString &sName);
+
+    /** \brief Показ надписи о отключенном сервере (о отсутсвии подлючения)
+     */
+    void showNotConnectedLabel();
+
+    /** \brief Показ надписи о режиме работы "Симуляция" (без отправки данных в сеть)
+     */
+    void showSimulationLabel();
+
+    /** \brief Показ надписи о режиме работы "Симуляция" (без отправки данных в сеть)
+     */
+    void showErrorLabel();
 
 private:
     Ui::BluetoothClient     *_ui;
