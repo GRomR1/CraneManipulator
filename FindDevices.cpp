@@ -1,5 +1,6 @@
 #include "FindDevices.h"
 #include "ui_FindDevices.h"
+#include <QBluetoothLocalDevice>
 
 FindDevices::FindDevices(SavedOptionsInterface *options, QWidget *parent) :
     QWidget(parent),

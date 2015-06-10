@@ -530,8 +530,6 @@ void BluetoothClient::setControls(Controls c)
 
 void BluetoothClient::on__pushButtonPower_clicked(bool checked)
 {
-//    qDebug() << checked;
-//    checked == true - питание вкл.
     if(checked)
         sendMessage(powerButton, 0x01);
     else
@@ -586,8 +584,6 @@ void BluetoothClient::on__pushButtonSoundSignal_released()
 
 void BluetoothClient::on__pushButtonLight_clicked(bool checked)
 {
-    //    qDebug() << checked;
-    //    checked == true - свет вкл.
     if(checked)
         sendMessage(lightButton, 0x01);
     else
