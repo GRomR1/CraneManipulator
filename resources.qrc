@@ -37,5 +37,7 @@
         <file>pics/up.svg</file>
         <file>pics/back.svg</file>
         <file>pics/forward.svg</file>
+        <file>pics/check.svg</file>
+        <file>pics/round.svg</file>
     </qresource>
 </RCC>

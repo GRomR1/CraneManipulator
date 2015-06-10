@@ -3,6 +3,34 @@ QPushButton {
     border-style: outset;
 }
 
+/* Описание radiobuttons в FD */
+QRadioButton::indicator {
+    border-style: outset;
+    width: 53px;
+    height: 53px;
+    border: 2px solid #8f8f91;
+    border-radius: 10px;
+}
+QRadioButton::indicator::checked {
+    background-image: url(:/pics/round.svg);
+    background-position: center center;
+    background-repeat: no-repeat;
+}
+
+/* Описание checkbox в FD */
+QCheckBox::indicator {
+    border-style: outset;
+    width: 70px;
+    height: 53px;
+    border: 2px solid #8f8f91;
+    border-radius: 10px;
+}
+QCheckBox::indicator::checked {
+    background-image: url(:/pics/check.svg);
+    background-position: center center;
+    background-repeat: no-repeat;
+}
+
 QPushButton#_pushButtonConnecting {
     text-align: right;
 }

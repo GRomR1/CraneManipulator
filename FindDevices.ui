@@ -77,27 +77,18 @@
      </item>
      <item>
       <layout class="QGridLayout" name="gridLayout" rowstretch="0,0,0" rowminimumheight="0,0,0">
-       <item row="2" column="1">
-        <widget class="QCheckBox" name="_checkBoxSimulate">
+       <item row="1" column="0">
+        <widget class="QRadioButton" name="_radioButtonSetSlider">
          <property name="font">
           <font>
            <pointsize>25</pointsize>
           </font>
          </property>
          <property name="text">
-          <string>Симуляция</string>
+          <string>Рычаги</string>
          </property>
-        </widget>
-       </item>
-       <item row="1" column="1">
-        <widget class="QCheckBox" name="_checkBoxRemind">
-         <property name="font">
-          <font>
-           <pointsize>25</pointsize>
-          </font>
-         </property>
-         <property name="text">
-          <string>Запомнить</string>
+         <property name="checked">
+          <bool>true</bool>
          </property>
         </widget>
        </item>
@@ -113,20 +104,55 @@
          </property>
         </widget>
        </item>
-       <item row="1" column="0">
-        <widget class="QRadioButton" name="_radioButtonSetSlider">
+       <item row="1" column="2">
+        <widget class="QCheckBox" name="_checkBoxRemind">
          <property name="font">
           <font>
            <pointsize>25</pointsize>
           </font>
          </property>
          <property name="text">
-          <string>Ползунки</string>
-         </property>
-         <property name="checked">
-          <bool>true</bool>
+          <string>Запомнить</string>
          </property>
         </widget>
+       </item>
+       <item row="2" column="2">
+        <widget class="QCheckBox" name="_checkBoxSimulate">
+         <property name="font">
+          <font>
+           <pointsize>25</pointsize>
+          </font>
+         </property>
+         <property name="text">
+          <string>Симуляция</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <spacer name="horizontalSpacer_3">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="2" column="1">
+        <spacer name="horizontalSpacer_4">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
        </item>
       </layout>
      </item>
