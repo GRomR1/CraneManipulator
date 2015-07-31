@@ -12,5 +12,5 @@ Compiled apps: <a href='https://dl.dropboxusercontent.com/u/65733625/Soft/CraneA
 v1.1 [15.02.2015]:
 Compiled apps: <a href='https://dl.dropboxusercontent.com/u/65733625/Soft/CraneApps_1.1.7z'>Download</a>
 
-v1.2 [05.06.2015]:
+v1.2 [11.06.2015]:
 Compiled apps: <a href='https://dl.dropboxusercontent.com/u/65733625/Soft/CraneApps_1.2.7z'>Download</a>
