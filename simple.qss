@@ -43,6 +43,14 @@ QPushButton#_pushButtonPower {
     padding: 6px;
 }
 
+QPushButton#_pushButtonStop {
+    background-color: rgba(255, 0, 0, 15%); /* red */
+    border-width: 2px;
+    border-radius: 10px;
+    border-color: beige;
+    padding: 6px;
+}
+
 QPushButton#_pushButtonLight {
     background-color: rgba(255, 204, 51, 20%); /* yellow */
     border-width: 2px;
@@ -112,23 +120,13 @@ QLabel#_labelCrutchesOrPillar {
 }
 
 /* Опоры */
-QPushButton#_pushButtonCrutchesOrPillar:!checked {
-    background-color: #DEB887;      /* Burly Wood */
-    border-width: 2px;
-    border-radius: 10px;
-    border-color: beige;
-    padding: 6px;
-}
-
 /* Стойка, стрела, лебедка */
-QPushButton#_pushButtonCrutchesOrPillar:checked {
-    background-color: #A6CAF0;      /* Sky Blue */
+QPushButton#_pushButtonCrutchesOrPillar {
     border-width: 2px;
     border-radius: 10px;
     border-color: beige;
     padding: 6px;
 }
-
 
 QPushButton#_pushButtonDiscovery {
     background-color: #A6CAF0;      /* Sky Blue */

@@ -88,7 +88,7 @@
           <string>Рычаги</string>
          </property>
          <property name="checked">
-          <bool>true</bool>
+          <bool>false</bool>
          </property>
         </widget>
        </item>
@@ -101,6 +101,9 @@
          </property>
          <property name="text">
           <string>Кнопки</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
          </property>
         </widget>
        </item>
