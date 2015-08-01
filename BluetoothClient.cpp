@@ -6,8 +6,11 @@ BluetoothClient::BluetoothClient(QWidget *parent) :
     QWidget(parent),
     _ui(new Ui::BluetoothClient),
     _currentMode(Crutches),
+    _currentPower(0),
+    _currentLight(0),
     _currentSpeedTimeout(FirstSpeed),
     _timerIdHookWarning(0),
+    _timerIdStop(0),
     _timerIdTemperatureWarning(0),
     _crutchOn(true),
     _pillarOn(true),
@@ -16,11 +19,15 @@ BluetoothClient::BluetoothClient(QWidget *parent) :
     _telBoomOn(true),
     _outriggerOn(true),
     _hookWarningOn(true),
+    _stopedOn(true),
     _temperatureWarningOn(true),
     _localSliderChanged(0),
     _timerIdSliderControls(0),
     _simulation(false),
-    _controls(Sliders)
+    _controls(Sliders),
+    _wakePort(0),
+    _timerIdStatus(0),
+    _stopped(false)
 {
     _ui->setupUi(this);
     showNotConnectedLabel();
@@ -37,6 +44,7 @@ BluetoothClient::BluetoothClient(QWidget *parent) :
     _ui->_pushButtonDerrickLabel->setIconSize(_ui->_pushButtonDerrickLabel->size()-QSize(10,10));
     _ui->_pushButtonOutriggerLabel->setIconSize(_ui->_pushButtonOutriggerLabel->size()-QSize(10,10));
     _ui->_pushButtonTelBoomLabel->setIconSize(_ui->_pushButtonTelBoomLabel->size()-QSize(10,10));
+    _ui->_pushButtonStop->setIconSize(_ui->_pushButtonStop->size()-QSize(10,10));
 
     int minusValue=80;
 #ifdef ANDROID_233
@@ -77,6 +85,7 @@ BluetoothClient::BluetoothClient(QWidget *parent) :
     }
 
     hidePillarControls();       //переключаем в режим "Стойки" (прячем управление Pillar)
+    _ui->_pushButtonPower->setEnabled(false);
     setEnabledControls(false);  //отключаем "питание" у пульта
 
     // соединяем обработчики отпускания слайдера со слайдером
@@ -130,10 +139,12 @@ BluetoothClient::BluetoothClient(QWidget *parent) :
 //    _buuid = QBluetoothUuid(serviceUuid16);  // если будем подключаться через собственную службу c uuid = serviceUuid16
     _socket = new QBluetoothSocket(QBluetoothServiceInfo::RfcommProtocol);
 
-    connect(_socket, SIGNAL(readyRead()), this, SLOT(readSocket()));
+//    connect(_socket, SIGNAL(readyRead()), this, SLOT(readSocket()));
     connect(_socket, SIGNAL(connected()), this, SLOT(connected()));
     connect(_socket, SIGNAL(disconnected()), this, SLOT(disconnected()));
     connect(_socket, SIGNAL(error(QBluetoothSocket::SocketError)), this, SLOT(readError(QBluetoothSocket::SocketError)));
+
+    _wakePort = new MyWakePort<QBluetoothSocket>(_socket);
 }
 
 BluetoothClient::~BluetoothClient()
@@ -142,11 +153,24 @@ BluetoothClient::~BluetoothClient()
         _socket->disconnectFromService();
     delete _socket;
     delete _ui;
+    delete _wakePort;
 }
 
 void BluetoothClient::timerEvent(QTimerEvent *event)
 {
     int id = event->timerId();
+    if(id == _timerIdStatus)
+    {
+#if SHOW_DEBUG
+        qDebug() << "Сработал таймер опроса" << id;
+#endif
+        quint8 mes=0x03;
+        sendMessage(highTemperature, mes);
+        sendMessage(powerStatus, mes);
+        sendMessage(lightStatus, mes);
+        sendMessage(hookWarning, mes);
+        sendMessage(modeCrOrPStatus, mes);
+    }
     if(id == _timerIdCrutchesAndPillar)
     {
         if(_currentMode==Crutches)
@@ -161,7 +185,7 @@ void BluetoothClient::timerEvent(QTimerEvent *event)
             _hookOn=!_hookOn;
         }
     }
-    else if(id == _timerIdDerricAndTelBoom)
+    if(id == _timerIdDerricAndTelBoom)
     {
         if(_derricOn)
             _ui->_pushButtonDerrickLabel->setIcon(QIcon(":/pics/derrick_black.svg"));
@@ -174,7 +198,7 @@ void BluetoothClient::timerEvent(QTimerEvent *event)
             _ui->_pushButtonTelBoomLabel->setIcon(QIcon(":/pics/telescopic_boom_white.svg"));
         _telBoomOn=!_telBoomOn;
     }
-    else if(id == _timerIdOutrigger)
+    if(id == _timerIdOutrigger)
     {
         if(_outriggerOn)
             _ui->_pushButtonOutriggerLabel->setIcon(QIcon(":/pics/outrigger_black.svg"));
@@ -182,12 +206,12 @@ void BluetoothClient::timerEvent(QTimerEvent *event)
             _ui->_pushButtonOutriggerLabel->setIcon(QIcon(":/pics/outrigger_white.svg"));
         _outriggerOn=!_outriggerOn;
     }
-    else if(id == _timerIdErrorMessage)
+    if(id == _timerIdErrorMessage)
     {
         killTimer(_timerIdErrorMessage);
         _ui->_labelError->clear();
     }
-    else if(id == _timerIdHookWarning)
+    if(id == _timerIdHookWarning)
     {
         if(_hookWarningOn)
             _ui->_pushButtonHookWarning->setIcon(QIcon(":/pics/warning_red.svg"));
@@ -195,7 +219,15 @@ void BluetoothClient::timerEvent(QTimerEvent *event)
             _ui->_pushButtonHookWarning->setIcon(QIcon(":/pics/warning_normal.svg"));
         _hookWarningOn=!_hookWarningOn;
     }
-    else if(id == _timerIdTemperatureWarning)
+    if(id == _timerIdStop)
+    {
+        if(_stopedOn)
+            _ui->_pushButtonStop->setIcon(QIcon(":/pics/cancel.svg"));
+        else
+            _ui->_pushButtonStop->setIcon(QIcon(":/pics/cancel_black.svg"));
+        _stopedOn=!_stopedOn;
+    }
+    if(id == _timerIdTemperatureWarning)
     {
         if(_temperatureWarningOn)
             _ui->_pushButtonTemperatureHigh->setIcon(QIcon(":/pics/temperature_high_red.svg"));
@@ -203,19 +235,20 @@ void BluetoothClient::timerEvent(QTimerEvent *event)
             _ui->_pushButtonTemperatureHigh->setIcon(QIcon(":/pics/temperature_normal.svg"));
         _temperatureWarningOn=!_temperatureWarningOn;
     }
-    else if(_mapTimerIdMessages.contains(id))
-    {
-        Element el = _mapTimerIdMessages[id].element;
-        quint8 mes = _mapTimerIdMessages[id].message;
-        sendMessage(el, mes);
-    }
-    else if(id == _timerIdSliderControls)
+
+//    qDebug() << "_mapTimerIdMessages" << _mapTimerIdMessages.size();
+//    if(_mapTimerIdMessages.contains(id))
+//    {
+//        Element el = _mapTimerIdMessages[id].element;
+//        quint8 mes = _mapTimerIdMessages[id].message;
+//        sendMessage(el, mes);
+//    }
+    if(id == _timerIdSliderControls)
     {
         Element el = _currentMessage.element;
         quint8 mes = _currentMessage.message;
         sendMessage(el, mes);
     }
-
 }
 
 void BluetoothClient::readError(QBluetoothSocket::SocketError err)
@@ -257,18 +290,32 @@ void BluetoothClient::readError(QBluetoothSocket::SocketError err)
 
 void BluetoothClient::connected()
 {
-    showConnectedLabel(_socket->peerName());
+    if(testLine())
+    {
+        showConnectedLabel(_socket->peerName());
 
-    QByteArray  arrBlock;
-    QDataStream out(&arrBlock, QIODevice::WriteOnly);
+//    QByteArray  arrBlock;
+//    QDataStream out(&arrBlock, QIODevice::WriteOnly);
 //    qDebug() << "begin: " << quint64(Preamble);
 //    qDebug() << "name: " << _localName;
 //    qDebug() << "address: " << _localAddress;
 //    qDebug() << "end: " << quint64(Preamble);
 
-    out << quint64(Preamble) << _localName << _localAddress << quint64(Preamble);
+//    out << quint64(Preamble) << _localName << _localAddress << quint64(Preamble);
 
-    writeInSocket(arrBlock);
+//    writeInSocket(arrBlock);
+
+        _timerIdStatus = startTimer(TIME_STATUS_READ, Qt::PreciseTimer);
+
+        quint8 mes=0x03;
+        sendMessage(highTemperature, mes);
+        sendMessage(powerStatus, mes);
+        sendMessage(lightStatus, mes);
+        sendMessage(hookWarning, mes);
+        sendMessage(modeCrOrPStatus, mes);
+
+        _ui->_pushButtonPower->setEnabled(true);
+    }
 }
 
 void BluetoothClient::disconnected()
@@ -276,6 +323,39 @@ void BluetoothClient::disconnected()
     if(_simulation)
         return;
     showNotConnectedLabel();
+    if(_timerIdStatus)
+    {
+        killTimer(_timerIdStatus);
+        _timerIdStatus=0;
+    }
+
+    _ui->_pushButtonPower->setEnabled(false);
+    setEnabledControls(false);
+}
+
+bool BluetoothClient::testLine()
+{
+    int countDataByte = 10;
+    char *str = new char[countDataByte];
+    for(int i=0; i<countDataByte; i++)
+        str[i] = qrand()%255;
+    int err=0;
+    int timeResponce = _wakePort->testLine(str, countDataByte, 1000, err); //принятый пакет данных
+    if (!err)
+    {
+         qDebug() << "Resp time: " << timeResponce;
+         return true;
+    }
+    else
+    {
+        QString errStr=_wakePort->getErrorString(err);//ошибка
+        qDebug() << errStr;
+        _ui->_labelError->setText(errStr);
+        _timerIdErrorMessage = startTimer(ErrorMessageDuration);
+        showErrorLabel();
+        return false;
+    }
+    delete[] str;
 }
 
 void BluetoothClient::readSocket()
@@ -328,10 +408,11 @@ void BluetoothClient::readSocket()
 }
 
 void BluetoothClient::writeInSocket(QByteArray &arr)
-{
+{    
+#if SHOW_DEBUG
     qDebug() << "write: " << (_simulation? "[loc]": "")
              << arr.toHex() << "[" << arr.size() << "]";
-//    qDebug() << _socket->state();
+#endif
 
     if(!_simulation)//если мы находимся не в режиме симуляции и подключены к сокету
         if(_socket->state() == QBluetoothSocket::ConnectedState)
@@ -342,28 +423,37 @@ void BluetoothClient::readMessage(Element el, quint8 mes)
 {
     switch (el) {
     case powerStatus:
+    case powerButton:
         if(mes==0x01)
             setPowerOn(true);
-        else
+        else if(mes==0x00)
             setPowerOn(false);
         break;
     case lightStatus:
+    case lightButton:
         if(mes==0x01)
             setLightOn(true);
-        else
+        else if(mes==0x00)
             setLightOn(false);
         break;
     case highTemperature:
         if(mes==0x01)
             setTemperatureWarning(true);
-        else
+        else if(mes==0x00)
             setTemperatureWarning(false);
         break;
     case hookWarning:
         if(mes==0x01)
             setHookWarning(true);
-        else
+        else if(mes==0x00)
             setHookWarning(false);
+        break;
+    case modeCrOrP:
+    case modeCrOrPStatus:
+        if(mes==(quint8)Crutches)
+            setMode(Crutches);
+        else if(mes==(quint8)Pillar)
+            setMode(Pillar);
         break;
     default:
         break;
@@ -372,58 +462,77 @@ void BluetoothClient::readMessage(Element el, quint8 mes)
 
 void BluetoothClient::sendMessage(Element el, quint8 mes)
 {
-    QByteArray  arrBlock;
-    QDataStream out(&arrBlock, QIODevice::WriteOnly);
-    out << quint8(el) << mes;
+    if(el==pillarUp
+            ||el==derrickUp
+            ||el==outriggerUp
+            ||el==telescopicUp
+            ||el==hookUp
+            ||el==leftCrutchUp
+            ||el==rightCrutchUp)
+    {
+        mes=mes;
+        el=Converting::convertOldElementToNewElement(el);
+    }
+    else if(el==pillarDown
+            ||el==derrickDown
+            ||el==outriggerDown
+            ||el==telescopicDown
+            ||el==hookDown
+            ||el==leftCrutchDown
+            ||el==rightCrutchDown)
+    {
+        mes=0-mes;
+        el=Converting::convertOldElementToNewElement(el);
+    }
 
-    writeInSocket(arrBlock);
+    if(!_stopped)
+    {
+        if(!_simulation)
+        {
+#if SHOW_DEBUG
+            qDebug() << Converting::convertElementToString(el) << mes;
+#endif
+            _wakePort->sendMessage(el, mes);
+            if(el==powerButton||el==lightButton
+                    ||el==powerStatus||el==lightStatus
+                    ||el==highTemperature||el==hookWarning
+                    ||el==modeCrOrP||el==modeCrOrPStatus)
+            {
+                _wakePort->getResponceStatus(el, mes);
+                if(mes!=0x03)
+                    readMessage(el, mes);
+            }
+        }
+    }
 }
+
+//OLD
+//void BluetoothClient::sendMessage(Element el, quint8 mes)
+//{
+//    QByteArray  arrBlock;
+//    QDataStream out(&arrBlock, QIODevice::WriteOnly);
+//    out << quint8(el) << mes;
+
+//    writeInSocket(arrBlock);
+//}
 
 void BluetoothClient::moveElement(Element el, quint8 mes)
 {
     if(mes!=0x00) //кнопка была нажата
     {
-        if(_controls==Buttons)
-        {
-            if(mes==0x01)
-            {
-                sendMessage(el, mes);
-                int id = startTimer(_currentSpeedTimeout);
-                _mapTimerIdMessages.insert(id, Message(el, mes));
-            }
-        }
-        else
-        {
-            if(_timerIdSliderControls!=0)
-                killTimer(_timerIdSliderControls);
-            sendMessage(el, mes);
-            _timerIdSliderControls = startTimer(_currentSpeedTimeout);
-        }
-        //... if(mes==0x02), if(mes==0x03), etc.
+        if(_timerIdSliderControls!=0)
+            killTimer(_timerIdSliderControls);
+        _currentMessage.element = el;
+        _currentMessage.message = mes;
+        sendMessage(el, mes);
+        _timerIdSliderControls = startTimer(_currentSpeedTimeout);
     }
     else //if (mes==0x00) //кнопка была отпущена
     {
-        if(_controls==Buttons)
+        if(_timerIdSliderControls!=0)
         {
-            QMap<int, Message>::const_iterator it = _mapTimerIdMessages.constBegin();
-            while(it!=_mapTimerIdMessages.constEnd())
-            {
-                if(it.value().element==el)
-                {
-                    killTimer(it.key());
-                    _mapTimerIdMessages.remove(it.key());
-                    break;
-                }
-                ++it;
-            }
-        }
-        else
-        {
-            if(_timerIdSliderControls!=0)
-            {
-                killTimer(_timerIdSliderControls);
-                _timerIdSliderControls=0;
-            }
+            killTimer(_timerIdSliderControls);
+            _timerIdSliderControls=0;
         }
     }
 }
@@ -505,7 +614,7 @@ void BluetoothClient::setSimulationMode(bool b)
     {
         showNotConnectedLabel();
     }
-    if(_ui->_pushButtonPower->isChecked())
+    if(_currentPower)
         setEnabledControls(true);
     else
         setEnabledControls(false);
@@ -526,10 +635,13 @@ void BluetoothClient::setControls(Controls c)
 //        qDebug() << "Pillar";
         showPillarControls();
     }
+
+    setEnabledControls(_currentPower);  //отключаем возможность управления если "питание" КМУ выключено
 }
 
-void BluetoothClient::on__pushButtonPower_clicked(bool checked)
+void BluetoothClient::on__pushButtonPower_clicked()
 {
+    bool checked=!_currentPower;
     if(checked)
         sendMessage(powerButton, 0x01);
     else
@@ -538,34 +650,31 @@ void BluetoothClient::on__pushButtonPower_clicked(bool checked)
     bool b = false;
     if(_simulation)
         b=true;
-    else
-    {
 #ifdef TURN_IMMEDIATELY
-        if(_socket->state() == QBluetoothSocket::ConnectedState)
-            b=true;
+        b=true;
 #endif
-    }
-
     if(b)
         setPowerOn(checked); // установить переключатель не дожидаясь ответа от КМУ
-    else
-        _ui->_pushButtonPower->setChecked(!checked);
 }
 
 void BluetoothClient::setPowerOn(bool b)
 {
     if(b)
     {
+        _currentPower=true;
         _ui->_pushButtonPower->setStyleSheet("background-color: rgba(0, 255, 0, 10%);");
         _ui->_pushButtonPower->setIcon(QIcon(":/pics/power_green.svg"));
 
+//        _ui->_pushButtonPower->setChecked(true);
         setEnabledControls(true);
     }
     else
     {
+        _currentPower=false;
         _ui->_pushButtonPower->setStyleSheet("background-color: rgba(255, 0, 0, 15%);");
         _ui->_pushButtonPower->setIcon(QIcon(":/pics/power_red.svg"));
 
+//        _ui->_pushButtonPower->setChecked(false);
         setEnabledControls(false);
     }
 }
@@ -582,8 +691,14 @@ void BluetoothClient::on__pushButtonSoundSignal_released()
     _ui->_pushButtonSoundSignal->setIcon(QIcon(":/pics/sound_signal_off.svg"));
 }
 
-void BluetoothClient::on__pushButtonLight_clicked(bool checked)
+//void BluetoothClient::on__pushButtonLight_clicked(bool checked)
+//{
+
+//}
+
+void BluetoothClient::on__pushButtonLight_clicked()
 {
+    bool checked=!_currentLight;
     if(checked)
         sendMessage(lightButton, 0x01);
     else
@@ -599,17 +714,24 @@ void BluetoothClient::on__pushButtonLight_clicked(bool checked)
         setLightOn(checked); // установить переключатель не дожидаясь ответа от КМУ
 }
 
+
 void BluetoothClient::setLightOn(bool b)
 {
     if(b)
     {
+        _currentLight=true;
         _ui->_pushButtonLight->setStyleSheet("background-color: rgba(255, 204, 51, 60%)");
         _ui->_pushButtonLight->setIcon(QIcon(":/pics/light_on.svg"));
+
+//        _ui->_pushButtonLight->setChecked(true);
     }
     else
     {
+        _currentLight=false;
         _ui->_pushButtonLight->setStyleSheet("background-color: rgba(255, 204, 51, 20%)");
         _ui->_pushButtonLight->setIcon(QIcon(":/pics/light_off.svg"));
+
+//        _ui->_pushButtonLight->setChecked(false);
     }
 }
 
@@ -625,7 +747,8 @@ void BluetoothClient::setHookWarning(bool b)
     }
     else
     {
-        killTimer(_timerIdHookWarning);
+        if(_timerIdHookWarning!=0)
+            killTimer(_timerIdHookWarning);
         _timerIdHookWarning=0;
         _ui->_pushButtonHookWarning->setIcon(QIcon(":/pics/warning_normal.svg"));
     }
@@ -642,7 +765,8 @@ void BluetoothClient::setTemperatureWarning(bool b)
     }
     else
     {
-        killTimer(_timerIdTemperatureWarning);
+        if(_timerIdTemperatureWarning!=0)
+            killTimer(_timerIdTemperatureWarning);
         _timerIdTemperatureWarning=0;
         _ui->_pushButtonTemperatureHigh->setIcon(QIcon(":/pics/temperature_normal.svg"));
     }
@@ -654,38 +778,91 @@ void BluetoothClient::on__pushButtonSpeed_clicked(bool checked)
     //    checked == true - быстро
     if(checked)
     {
-//        sendMessage(speedButton, 0x01);
+        sendMessage(speedButton, 0x01);
         _currentSpeedTimeout = SecondSpeed;
         _ui->_pushButtonSpeed->setIcon(QIcon(":/pics/speed_high.svg"));
     }
     else
     {
+        sendMessage(speedButton, 0x00);
         _currentSpeedTimeout = FirstSpeed;
-//        sendMessage(speedButton, 0x00);
         _ui->_pushButtonSpeed->setIcon(QIcon(":/pics/speed_low.svg"));
     }
 }
 
-void BluetoothClient::on__pushButtonCrutchesOrPillar_clicked(bool checked)
-{
-    //    qDebug() << checked;
+//void BluetoothClient::on__pushButtonCrutchesOrPillar_clicked(bool checked)
+//{
+//    qDebug() << "on__pushButtonCrutchesOrPillar_clicked" << checked;
     //    checked == true - стойка, стрела, лебедка
-    if(checked)
-    {
-        _currentMode = Pillar;
-        setPillarAndHookLabels();
-        _ui->_labelCrutchesOrPillar->setText("Cтойка, стрела, лебедка");
-        showPillarControls();
-    }
+//    if(checked)
+//    {
+//        _currentMode = Pillar;
+//        sendMessage(modeCrOrP, Pillar);
+//        setPillarAndHookLabels();
+//        _ui->_labelCrutchesOrPillar->setText("Стойка, стрела, лебедка");
+//        showPillarControls();
+//    }
+//    else
+//    {
+//        _currentMode = Crutches;
+//        sendMessage(modeCrOrP, Crutches);
+//        setCrutchesLabels();
+//        _ui->_labelCrutchesOrPillar->setText("Опоры");
+//        hidePillarControls();
+//    }
+
+//    else
+//        _ui->_pushButtonCrutchesOrPillar->setChecked(!checked);
+
+//}
+
+void BluetoothClient::on__pushButtonCrutchesOrPillar_clicked()
+{
+    Mode newMode = (_currentMode == Pillar)? Crutches: Pillar;
+
+    if(newMode==Pillar)
+        sendMessage(modeCrOrP, Pillar);
     else
+        sendMessage(modeCrOrP, Crutches);
+
+    bool b = false;
+    if(_simulation)
+        b=true;
+#ifdef TURN_IMMEDIATELY
+    b=true;
+#endif
+    if(b)
     {
-        _currentMode = Crutches;
-        setCrutchesLabels();
-        _ui->_labelCrutchesOrPillar->setText("Опоры");
-        hidePillarControls();
+        // установить переключатель не дожидаясь ответа от КМУ
+        if(newMode)
+            setMode(Pillar);
+        else
+            setMode(Crutches);
     }
 }
 
+
+void BluetoothClient::setMode(Mode mode)
+{
+    if(mode==Pillar)
+    {
+        _currentMode = Pillar;
+        _ui->_labelCrutchesOrPillar->setText("Стойка, стрела, лебедка");
+        setPillarAndHookLabels();
+        showPillarControls();
+
+//        _ui->_pushButtonCrutchesOrPillar->setChecked(true);
+    }
+    else if(mode==Crutches)
+    {
+        _currentMode = Crutches;
+        _ui->_labelCrutchesOrPillar->setText("Опоры");
+        setCrutchesLabels();
+        hidePillarControls();
+
+//        _ui->_pushButtonCrutchesOrPillar->setChecked(false);
+    }
+}
 
 void BluetoothClient::setCrutchesLabels()
 {
@@ -719,6 +896,7 @@ void BluetoothClient::setPillarAndHookLabels()
 void BluetoothClient::showPillarControls()
 {
     _ui->_pushButtonCrutchesOrPillar->setIcon(QIcon(":/pics/pillar_boom_hook.svg"));
+    _ui->_pushButtonCrutchesOrPillar->setStyleSheet("background-color: #A6CAF0");    /* Sky Blue */
     _ui->_pushButtonDerrickLabel->setVisible(true);
     _ui->_pushButtonOutriggerLabel->setVisible(true);
     _ui->_pushButtonTelBoomLabel->setVisible(true);
@@ -768,6 +946,7 @@ void BluetoothClient::showPillarControls()
 void BluetoothClient::hidePillarControls()
 {
     _ui->_pushButtonCrutchesOrPillar->setIcon(QIcon(":/pics/crutches.svg"));
+    _ui->_pushButtonCrutchesOrPillar->setStyleSheet("background-color: #DEB887");      /* Burly Wood */
     _ui->_pushButtonDerrickLabel->hide();
     _ui->_pushButtonOutriggerLabel->hide();
     _ui->_pushButtonTelBoomLabel->hide();
@@ -846,9 +1025,7 @@ void BluetoothClient::setEnabledControls(bool b)
 void BluetoothClient::on__pushButtonPillarUp_pressed()
 {
     if(_currentMode==Pillar)
-    {
         moveElement(pillarUp, 0x01);
-    }
     else
         moveElement(leftCrutchUp, 0x01);
 }
@@ -1067,4 +1244,50 @@ void BluetoothClient::addValueToSlider(QSlider *slider, int addValue)
 void BluetoothClient::on__pushButtonConnecting_clicked()
 {
     emit showFindDevices();
+}
+
+void BluetoothClient::on__pushButtonStop_clicked()
+{
+    _stopped=!_stopped;
+    if(_stopped)
+    {
+        //останавливаем таймер отправки сигналов от элементов управления
+        if(_timerIdSliderControls!=0)
+        {
+            killTimer(_timerIdSliderControls);
+            _timerIdSliderControls=0;
+        }
+
+        _ui->_labelError->setText(trUtf8("Все сигналы приостановлены"));
+    }
+    else
+        _ui->_labelError->setText(trUtf8("Отправка сигналов восстановлена"));
+
+    _timerIdErrorMessage = startTimer(ErrorMessageDuration);
+
+    //включаем таймер для мигания кнопки
+    if(_stopped)
+    {
+        if(_timerIdStop!=0)
+            killTimer(_timerIdStop);
+        _timerIdStop = startTimer(WarningBlinkInterval);
+        _ui->_pushButtonStop->setIcon(QIcon(":/pics/cancel.svg"));
+    }
+    else
+    {
+        if(_timerIdStop!=0)
+            killTimer(_timerIdStop);
+        _timerIdStop=0;
+        _ui->_pushButtonStop->setIcon(QIcon(":/pics/cancel_black.svg"));
+    }
+}
+
+void BluetoothClient::on__pushButtonHookWarning_clicked()
+{
+    sendMessage(hookWarning, 0);
+}
+
+void BluetoothClient::on__pushButtonTemperatureHigh_clicked()
+{
+    sendMessage(highTemperature, 0);
 }

@@ -21,7 +21,9 @@ HEADERS  += \
     ../Defines.h \
     BluetoothClient.h \
     FindDevices.h \
-    SavedOptionsInterface.h
+    SavedOptionsInterface.h \
+    MyWake.h \
+    MyWakePort.h
 
 CONFIG += mobility
 MOBILITY = 

@@ -39,5 +39,7 @@
         <file>pics/forward.svg</file>
         <file>pics/check.svg</file>
         <file>pics/round.svg</file>
+        <file>pics/cancel.svg</file>
+        <file>pics/cancel_black.svg</file>
     </qresource>
 </RCC>

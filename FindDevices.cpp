@@ -60,6 +60,8 @@ FindDevices::~FindDevices()
 
 void FindDevices::show()
 {
+    _ui->_radioButtonSetButton->setChecked(true);
+
     if(_options->isSliders())
         _ui->_radioButtonSetSlider->setChecked(true);
     if(_options->keepIsMind())

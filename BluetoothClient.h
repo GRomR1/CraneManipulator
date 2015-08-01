@@ -6,6 +6,7 @@
 #include <QBluetoothUuid>
 #include <QBluetoothSocket>
 #include "../Defines.h"
+#include "MyWakePort.h"
 
 namespace Ui {
 class BluetoothClient;
@@ -107,6 +108,10 @@ private slots:
      */
     void moveElement(Element el, quint8 mes);
 
+    /** \brief Изменение текущего режима (опоры/стойка)
+     */
+    void setMode(Mode mode);
+
     /** \brief Обработчик установки иконок опор (режим Опоры)
      */
     void setCrutchesLabels();
@@ -138,7 +143,7 @@ private slots:
     /** \brief Обработчик нажатия на кнопку включения питания
      *  \param[in]  checked    Включить(true)/выключить питание (нажатие/отжатие кнопки)
      */
-    void on__pushButtonPower_clicked(bool checked);
+    void on__pushButtonPower_clicked();
 
     /** \brief Обработчик нажатия на кнопку гудка
      */
@@ -151,7 +156,8 @@ private slots:
     /** \brief Обработчик нажатия на кнопку включения света
      *  \param[in]  checked    Включить(true)/выключить свет (нажатие/отжатие кнопки)
      */
-    void on__pushButtonLight_clicked(bool checked);
+//    void on__pushButtonLight_clicked(bool checked);
+    void on__pushButtonLight_clicked();
 
     /** \brief Обработчик нажатия на кнопку изменения скорость
      *  \param[in]  checked    Быстро(true)/медленно (нажатие/отжатие кнопки)
@@ -161,7 +167,8 @@ private slots:
     /** \brief Обработчик нажатия на кнопку изменения режима (опоры/стойка)
      *  \param[in]  checked    Стойка, стрела, лебедка(true)/опоры (нажатие/отжатие кнопки)
      */
-    void on__pushButtonCrutchesOrPillar_clicked(bool checked);
+//    void on__pushButtonCrutchesOrPillar_clicked(bool checked);
+    void on__pushButtonCrutchesOrPillar_clicked();
 
     /** \brief Обработчик нажатия на кнопку "вверх стойка"
      */
@@ -279,21 +286,43 @@ private slots:
      */
     void showSimulationLabel();
 
-    /** \brief Показ надписи о режиме работы "Симуляция" (без отправки данных в сеть)
+    /** \brief Показ надписи "В процессе подключения/передачи возникла ошибка"
      */
     void showErrorLabel();
+
+    /** \brief Обработчик нажатия на кнопку "опасность перекрутки лебедки"
+     *         Вызывает опрос состояния КМУ
+     */
+    void on__pushButtonHookWarning_clicked();
+
+    /** \brief Обработчик нажатия на кнопку "опасность перегрева РЖ"
+     *         Вызывает опрос состояния КМУ
+     */
+    void on__pushButtonTemperatureHigh_clicked();
+
+    /** \brief Обработчик нажатия на кнопку "СТОП"
+     *         Оставливает отправку любых сигналов до последующего нажатия на эту же кнопку
+     */
+    void on__pushButtonStop_clicked();
+
+
+
+
 
 private:
     Ui::BluetoothClient     *_ui;                            ///< Форма (GUI)
     QBluetoothSocket        *_socket;                        ///< Основной элемент через который происходит весь обмен данными
     QBluetoothUuid           _buuid;                         ///< ID сервиса по которому происходит blutooth передача (по умолчанию - SPP)
     Mode                     _currentMode;                   ///< Текущий режим (опоры/стойка)
+    bool                     _currentPower;                  ///< Текущая установка питания (вкл/выкл)
+    bool                     _currentLight;                  ///< Текущая установка света (вкл/выкл)
     int                      _currentSpeedTimeout;           ///< Текущая скорость (промежуток времени) через который отправляюется сигналы в сеть от рычагов
     int                      _timerIdCrutchesAndPillar;      ///< ID таймера для мигания иконок стойки и опор
     int                      _timerIdDerricAndTelBoom;       ///< ID таймера для мигания иконок подъемной и телескопической стрелы
     int                      _timerIdOutrigger;              ///< ID таймера для мигания иконки выносной стрелы
     int                      _timerIdErrorMessage;           ///< ID таймера для показа сообщения об ошибке bluetooth подключения/передачи
     int                      _timerIdHookWarning;            ///< ID таймера для мигания иконки концевого датчика лебедки
+    int                      _timerIdStop;                   ///< ID таймера для мигания иконки кнопки СТОП
     int                      _timerIdTemperatureWarning;     ///< ID таймера для мигания иконки датчика перегрева РЖ
     bool                     _crutchOn;                      ///< Используется для мигания центральной иконки опор
     bool                     _pillarOn;                      ///< Используется для мигания центральной иконки стойки
@@ -301,8 +330,9 @@ private:
     bool                     _derricOn;                      ///< Используется для мигания центральной иконки подъемной стрелы
     bool                     _telBoomOn;                     ///< Используется для мигания центральной иконки телескопической стрелы
     bool                     _outriggerOn;                   ///< Используется для мигания центральной иконки выносной стрелы
-    bool                     _hookWarningOn;                 ///< Имеется опасность перекрутки лебедки (сработал датчик лебедки)
-    bool                     _temperatureWarningOn;          ///< Имеется опасность перегрева (сработал датчик перегрева РЖ)
+    bool                     _hookWarningOn;                 ///< Используется для мигания опасность перекрутки лебедки (сработал датчик лебедки)
+    bool                     _stopedOn;                      ///< Используется для мигания кнопки СТОП
+    bool                     _temperatureWarningOn;          ///< Используется для мигания опасность перегрева (сработал датчик перегрева РЖ)
     Message                  _currentMessage;                ///< Последнее посланное сообщение (изменяется после изменения значения слайдера)
 
     QByteArray               _arr;                           ///< Текущие принятые данные (2 байта)
@@ -313,6 +343,9 @@ private:
     int                      _timerIdSliderControls;         ///< Служит для обработки долгого удержания слайдера в одном положении
     bool                     _simulation;                    ///< Флаг отвечающий за отправку сигналов к серверу
     Controls                 _controls;                      ///< Показываем кнопки или слайдеры
+    MyWakePort<QBluetoothSocket> *_wakePort;                 ///< Объект осуществляющий обмен данных с КМУ
+    int                      _timerIdStatus;                 ///< ID таймера для опроса КМУ о состоянии питания, света, темп., перекрутки
+    bool                     _stopped;                       ///< Флаг остановки отправки сигналов в порт
 
     /** \brief Показ элементов управления стойкой, стрелой, лебедкой
      */
@@ -337,6 +370,13 @@ private:
     /** \brief Возвращает слайдер в начальное значение (0)
      */
     void backwardSliderAfterReleased(QSlider *slider);
+
+    /** \brief Тестирует линию (отправляет echo пакет из 10 байт)
+     *         и в qDebug записывает время ответа в мс или описание ошибки
+     *  \return 1 - если есть контакт и возможен обмен,
+     *          0 - канал связи недоступен
+     */
+    bool testLine();
 };
 
 #endif // BLUETOOTHCLIENT_H
